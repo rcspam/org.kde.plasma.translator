@@ -1,0 +1,17 @@
+{
+    "KPlugin": {
+        "Authors": [
+            { "Email": "rcspam4gh@gmail.com", "Name": "rcspam" },
+            { "Email": "dr@i-glu4it.ru", "Name": "Driglu4it" }
+        ],
+        "Category": "Language",
+        "Description": "Simple wrap of translate-shell package",
+        "Icon": "globe",
+        "Id": "org.kde.plasma.translator",
+        "Name": "Translator",
+        "Version": "1.0",
+        "License": "MIT"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "KPackageStructure": "Plasma/Applet"
+}
