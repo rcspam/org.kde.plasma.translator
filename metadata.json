@@ -1,8 +1,8 @@
 {
     "KPlugin": {
         "Authors": [
-            { "Email": "rcspam4gh@gmail.com", "Name": "rcspam" },
-            { "Email": "dr@i-glu4it.ru", "Name": "Driglu4it" }
+            { "Email": "dr@i-glu4it.ru", "Name": "Driglu4it" },
+            { "Email": "rcspam4gh@gmail.com", "Name": "rcspam" }
         ],
         "Category": "Language",
         "Description": "Simple wrap of translate-shell package",
