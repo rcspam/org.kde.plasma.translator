@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
+  <kcfgfile name="translator"/>
+  <group name="General">
+  <entry name="languages" type="String">
+    <label>Languages</label>
+    <default>[
+    {"active":true,"lang":"Afrikaans","code":"af","nativelang":"Afrikaans","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Albanian","code":"sq","nativelang":"Shqip","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Amharic","code":"am","nativelang":"አማርኛ","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Arabic","code":"ar","nativelang":"العربية","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Armenian","code":"hy","nativelang":"Հայերեն","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Azerbaijani","code":"az","nativelang":"Azərbaycanca","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Bashkir","code":"ba","nativelang":"Башҡорт теле","google":false,"yandex":true,"bing":false,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Basque","code":"eu","nativelang":"Euskara","google":true,"yandex":true,"bing":false,"apertium":true,"enabled":true,"tts":false},
+    {"active":true,"lang":"Belarusian","code":"be","nativelang":"Беларуская","google":true,"yandex":true,"bing":false,"apertium":true,"enabled":true,"tts":false},
+    {"active":true,"lang":"Bengali","code":"bn","nativelang":"বাংলা","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Bosnian","code":"bs","nativelang":"Bosanski","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Bulgarian","code":"bg","nativelang":"Български","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":false},
+    {"active":true,"lang":"Cantonese","code":"yue","nativelang":"粵語","google":false,"yandex":false,"bing":true,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Catalan","code":"ca","nativelang":"Català","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Cebuano","code":"ceb","nativelang":"Cebuano","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Chichewa","code":"ny","nativelang":"Nyanja","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Chinese Simplified","code":"zh-CN","nativelang":"简体中文","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Chinese Traditional","code":"zh-TW","nativelang":"正體中文","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Corsican","code":"co","nativelang":"Corsu","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Croatian","code":"hr","nativelang":"Hrvatski","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Czech","code":"cs","nativelang":"Čeština","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Danish","code":"da","nativelang":"Dansk","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Dutch","code":"nl","nativelang":"Nederlands","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Earsten Mari","code":"mhr","nativelang":"Олык марий","google":false,"yandex":true,"bing":false,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Emoji","code":"emj","nativelang":"Emoji","google":false,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"English","code":"en","nativelang":"English","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Esperanto","code":"eo","nativelang":"Esperanto","google":true,"yandex":true,"bing":false,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Estonian","code":"et","nativelang":"Eesti","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Fijian","code":"fj","nativelang":"Vosa Vakaviti","google":false,"yandex":false,"bing":true,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Filipino","code":"tl","nativelang":"Tagalog","google":true,"yandex":false,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Finnish","code":"fi","nativelang":"Suomi","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"French","code":"fr","nativelang":"Français","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Frisian","code":"fy","nativelang":"Frysk","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Galician","code":"gl","nativelang":"Galego","google":true,"yandex":true,"bing":false,"apertium":true,"enabled":true,"tts":false},
+    {"active":true,"lang":"Georgian","code":"ka","nativelang":"ქართული","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"German","code":"de","nativelang":"Deutsch","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Greek","code":"el","nativelang":"Ελληνικά","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Gujarati","code":"gu","nativelang":"ગુજરાતી","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Haitian Creole","code":"ht","nativelang":"Kreyòl Ayisyen","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Hausa","code":"ha","nativelang":"Hausa","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Hawaiian","code":"haw","nativelang":"ʻŌlelo Hawaiʻi","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Hebrew","code":"he","nativelang":"עִבְרִית","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Hill Mari","code":"mrj","nativelang":"Кырык мары","google":false,"yandex":true,"bing":false,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Hindi","code":"hi","nativelang":"हिन्दी","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Hmong","code":"hmn","nativelang":"Hmoob","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Hmong Daw","code":"mww","nativelang":"Hmoob Daw","google":false,"yandex":false,"bing":true,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Hungarian","code":"hu","nativelang":"Magyar","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Icelandic","code":"is","nativelang":"Íslenska","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Igbo","code":"ig","nativelang":"Igbo","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Indonesian","code":"id","nativelang":"Bahasa Indonesia","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Irish","code":"ga","nativelang":"Gaeilge","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Italian","code":"it","nativelang":"Italiano","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Japanese","code":"ja","nativelang":"日本語","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Javanese","code":"jv","nativelang":"Basa Jawa","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Kannada","code":"kn","nativelang":"ಕನ್ನಡ","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Kazakh","code":"kk","nativelang":"Қазақ тілі","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":false},
+    {"active":true,"lang":"Khmer","code":"km","nativelang":"ភាសាខ្មែរ","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Klingon","code":"tlh","nativelang":"tlhIngan Hol","google":false,"yandex":false,"bing":true,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Klingon (pIqaD)","code":"tlh-Qaak","nativelang":" ","google":false,"yandex":false,"bing":false,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Korean","code":"ko","nativelang":"한국어","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Kurdish","code":"ku","nativelang":"Kurdî","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Kyrgyz","code":"ky","nativelang":"Кыргызча","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Lao","code":"lo","nativelang":"ລາວ","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Latin","code":"la","nativelang":"Latina","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Latvian","code":"lv","nativelang":"Latviešu","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Lithuanian","code":"lt","nativelang":"Lietuvių","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Luxembourgish","code":"lb","nativelang":"Lëtzebuergesch","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Macedonian","code":"mk","nativelang":"Македонски","google":true,"yandex":true,"bing":false,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Malagasy","code":"mg","nativelang":"Malagasy","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Malay","code":"ms","nativelang":"Bahasa Melayu","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":false},
+    {"active":true,"lang":"Malayalam","code":"ml","nativelang":"മലയാളം","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Maltese","code":"mt","nativelang":"Malti","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":false},
+    {"active":true,"lang":"Maori","code":"mi","nativelang":"Māori","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Marathi","code":"mr","nativelang":"मराठी","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Mongolian","code":"mn","nativelang":"Монгол","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Myanmar","code":"my","nativelang":"မြန်မာစာ","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Nepali","code":"ne","nativelang":"नेपाली","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Norwegian","code":"no","nativelang":"Norsk","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Papiamento","code":"pap","nativelang":"Papiamentu","google":false,"yandex":true,"bing":false,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Pashto","code":"ps","nativelang":"پښتو","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Persian","code":"fa","nativelang":"فارسی","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Polish","code":"pl","nativelang":"Polski","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Portuguese","code":"pt","nativelang":"Português","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Punjabi","code":"pa","nativelang":"ਪੰਜਾਬੀ","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Querétaro Otomi","code":"otq","nativelang":"Hñąñho","google":false,"yandex":false,"bing":true,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Romanian","code":"ro","nativelang":"Română","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Russian","code":"ru","nativelang":"Русский","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Samoan","code":"sm","nativelang":"Gagana Sāmoa","google":true,"yandex":false,"bing":true,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Scots Gaelic","code":"gd","nativelang":"Gàidhlig","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Serbian (Cyrillic)","code":"sr-Cyrl","nativelang":"Српски","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Serbian (Latin)","code":"sr-Latn","nativelang":"Srpski","google":false,"yandex":true,"bing":true,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Sesotho","code":"st","nativelang":"Sesotho","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Shona","code":"sn","nativelang":"chiShona","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Sindhi","code":"sd","nativelang":"سنڌي","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Sinhala","code":"si","nativelang":"සිංහල","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Slovak","code":"sk","nativelang":"Slovenčina","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Slovenian","code":"sl","nativelang":"Slovenščina","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":false},
+    {"active":true,"lang":"Somali","code":"so","nativelang":"Soomaali","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Spanish","code":"es","nativelang":"Español","google":true,"yandex":true,"bing":false,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Sundanese","code":"su","nativelang":"Basa Sunda","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Swahili","code":"sw","nativelang":"Kiswahili","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Swedish","code":"sv","nativelang":"Svenska","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Tahitian","code":"ty","nativelang":"Reo Tahiti","google":false,"yandex":false,"bing":true,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Tajik","code":"tg","nativelang":"Тоҷикӣ","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Tamil","code":"ta","nativelang":"தமிழ்","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Tatar","code":"tt","nativelang":"Татарча","google":true,"yandex":true,"bing":false,"apertium":true,"enabled":true,"tts":false},
+    {"active":true,"lang":"Telugu","code":"te","nativelang":"తెలుగు","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Thai","code":"th","nativelang":"ไทย","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Tongan","code":"to","nativelang":"Lea faka-Tonga","google":false,"yandex":false,"bing":true,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Turkish","code":"tr","nativelang":"Türkçe","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Udmurt","code":"udm","nativelang":"Удмурт","google":false,"yandex":true,"bing":false,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Ukrainian","code":"uk","nativelang":"Українська","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Urdu","code":"ur","nativelang":"اُردُو","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Uzbek","code":"uz","nativelang":"Oʻzbek tili","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Vietnamese","code":"vi","nativelang":"Tiếng Việt","google":true,"yandex":true,"bing":true,"apertium":false,"enabled":true,"tts":true},
+    {"active":true,"lang":"Welsh","code":"cy","nativelang":"Cymraeg","google":true,"yandex":true,"bing":true,"apertium":true,"enabled":true,"tts":true},
+    {"active":true,"lang":"Xhosa","code":"xh","nativelang":"isiXhosa","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Yiddish","code":"yi","nativelang":"ייִדיש","google":true,"yandex":true,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Yoruba","code":"yo","nativelang":"Yorùbá","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false},
+    {"active":true,"lang":"Yucatec Maya","code":"yua","nativelang":"Màaya T’àan","google":false,"yandex":false,"bing":true,"apertium":false,"enabled":false,"tts":false},
+    {"active":true,"lang":"Zulu","code":"zu","nativelang":"isiZulu","google":true,"yandex":false,"bing":false,"apertium":false,"enabled":true,"tts":false}
+]</default>
+  </entry>
+  <entry name="engine" type="String">
+              <label>Engine</label>
+	       <default>google</default>
+	  </entry>
+	  <entry name="autodetect" type="Bool">
+	              <label>Autodetect</label>
+		       <default>false</default>
+		  </entry>
+		  <entry name="checkall" type="Bool">
+		              <label>Checkall</label>
+			       <default>true</default>
+			  </entry>
+			  <entry name="sourceIndex" type="Int">
+			              <label>sourceIndex</label>
+				       <default>0</default>
+				  </entry>
+				  <entry name="destinationIndex" type="Int">
+				              <label>destinationIndex</label>
+					       <default>1</default>
+					  </entry>
+					  <entry name="mode" type="Int">
+					              <label>mode</label>
+						       <default>0</default>
+						  </entry>
+  </group>
+</kcfg>
