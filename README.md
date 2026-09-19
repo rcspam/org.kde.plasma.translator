@@ -63,6 +63,12 @@ kpackagetool6 -t Plasma/Applet -i .
 kpackagetool6 -t Plasma/Applet -u .
 ```
 
+> **Warning for 6.0.0 users:** do **not** click the "Update" button in the
+> widget settings. In 6.0.0 it points to the old Plasma 5 package (0.8) and
+> would break the widget. Update through Discover, "Get New Widgets", or the
+> command above instead. If you already clicked it, reinstall the widget from
+> the store or from this repository. Fixed in 6.0.1.
+
 ### Uninstall
 
 ```bash

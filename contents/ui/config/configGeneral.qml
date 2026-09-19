@@ -136,6 +136,15 @@ Item {
         }
     }
 
+    // Store product of this Plasma 6 port (the Plasma 5 original is 1395666)
+    readonly property string storeProductId: "2350395"
+
+    // "6.0.0" and "6.0" must compare equal: the store version field is
+    // hand-typed and rarely padded to three components.
+    function normalizeVersion(v) {
+        return v.trim().replace(/^v/i, "").replace(/(\.0+)+$/, "")
+    }
+
     function fetchUpdateInfo() {
         var xhr = new XMLHttpRequest()
         xhr.onreadystatechange = function() {
@@ -147,18 +156,20 @@ Item {
                     var homepageMatch = responseText.match(/<homepage>(.*?)<\/homepage>/)
 
                     if (versionMatch) serverversion = versionMatch[1]
-                    if (downloadMatch) serverlink = downloadMatch[1]
+                    if (downloadMatch) serverlink = downloadMatch[1].replace(/&amp;/g, "&")
                     if (homepageMatch) serverpage = homepageMatch[1]
 
-                    if (localversion != serverversion && updatepath.startsWith(appdata)) {
+                    var outdated = serverversion !== ""
+                            && normalizeVersion(localversion) !== normalizeVersion(serverversion)
+                    if (outdated && updatepath.startsWith(appdata)) {
                         t.state = 'notif'
-                    } else if (localversion != serverversion && !updatepath.startsWith(appdata)) {
+                    } else if (outdated && !updatepath.startsWith(appdata)) {
                         t.state = "fail"
                     }
                 }
             }
         }
-        xhr.open("GET", "https://api.kde-look.org/ocs/v1/content/data/1395666")
+        xhr.open("GET", "https://api.kde-look.org/ocs/v1/content/data/" + storeProductId)
         xhr.send()
     }
 
@@ -775,9 +786,11 @@ Item {
     function applyUpdate() {
         updatetext.text = i18n("Updating...")
         busy.visible = true
-        update.connectCmd("wget -O " + tmpfolder + "/" + plasmoid.pluginName
-                    + ".tar.gz " + serverlink + " && tar -C " + updatepath
-                    + "/ -xvzf " + tmpfolder + "/" + plasmoid.pluginName
-                    + ".tar.gz && rm " + tmpfolder + "/" + plasmoid.pluginName + ".tar.gz")
+        // The store file is a .plasmoid (zip); kpackagetool6 installs it in
+        // place, whatever the archive layout.
+        var pkg = tmpfolder + "/" + plasmoid.pluginName + ".plasmoid"
+        update.connectCmd("wget -O '" + pkg + "' '" + serverlink + "'"
+                    + " && kpackagetool6 --type Plasma/Applet --upgrade '" + pkg + "'"
+                    + "; s=$?; rm -f '" + pkg + "'; exit $s")
     }
 }
