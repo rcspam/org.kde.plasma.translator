@@ -9,7 +9,7 @@
         "Icon": "globe",
         "Id": "org.kde.plasma.translator",
         "Name": "Translator",
-        "Version": "6.1.1",
+        "Version": "6.1.2",
         "License": "MIT",
         "Website": "https://github.com/rcspam/org.kde.plasma.translator"
     },

@@ -145,6 +145,12 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 
 ## Changelog
 
+### 6.1.2
+
+- Fixed: the update checker never read the installed version, so the settings always showed "Update is available".
+- Fixed: an empty area at the top of the settings when no update is available.
+- Fixed: the "at least two languages" hint was dark on dark themes.
+
 ### 6.1.1
 
 - Fixed: the Changelog button of the update banner opened the page of the old Plasma 5 widget. It now opens the release notes on GitHub.
