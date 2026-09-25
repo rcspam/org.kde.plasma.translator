@@ -53,8 +53,10 @@ Item {
         colMiddleWidth = avail > 0 ? avail / 2 : 100
     }
 
-    property string metadataFilepath: Qt.resolvedUrl("../../metadata.json")
+    // metadata.json sits at the package root, three levels above this file
+    property string metadataFilepath: Qt.resolvedUrl("../../../metadata.json")
     property string localversion: ""
+    property bool enoughLanguages: true
     property string serverversion: ""
     property string serverlink: ""
     property string serverpage: ""
@@ -111,6 +113,7 @@ Item {
             } catch(e) {
                 localversion = ""
             }
+            checkUpdate()
         }
         function readVersion() {
             var path = metadataFilepath.toString().replace("file://", "")
@@ -152,6 +155,15 @@ Item {
     // Store product of this Plasma 6 port (the Plasma 5 original is 1395666)
     readonly property string storeProductId: "2350395"
 
+    // Runs when either version arrives: the store and metadata.json are read
+    // at the same time, in no given order.
+    function checkUpdate() {
+        if (!Version.updateAvailable(serverversion, localversion)) {
+            return
+        }
+        t.state = updatepath.startsWith(appdata) ? "notif" : "fail"
+    }
+
     function fetchUpdateInfo() {
         var xhr = new XMLHttpRequest()
         xhr.onreadystatechange = function() {
@@ -166,13 +178,7 @@ Item {
                     if (downloadMatch) serverlink = downloadMatch[1].replace(/&amp;/g, "&")
                     if (homepageMatch) serverpage = homepageMatch[1]
 
-                    var outdated = serverversion !== ""
-                            && Version.isNewer(serverversion, localversion)
-                    if (outdated && updatepath.startsWith(appdata)) {
-                        t.state = 'notif'
-                    } else if (outdated && !updatepath.startsWith(appdata)) {
-                        t.state = "fail"
-                    }
+                    checkUpdate()
                 }
             }
         }
@@ -204,9 +210,12 @@ Item {
     ColumnLayout {
         anchors.fill: parent
         Layout.alignment: Qt.AlignTop | Qt.AlignRight
+        // Update banner. A nested layout fills by default: with the banner
+        // hidden, the empty row would take a share of the free space and push
+        // the page down.
         RowLayout {
-            Layout.fillHeight: true
             Layout.fillWidth: true
+            Layout.fillHeight: false
             SequentialAnimation {
                 id: anim
                 NumberAnimation {
@@ -454,6 +463,9 @@ Item {
 
         QQC2.Label {
             id: notif
+            // The palette follows the Plasma theme. Kirigami.Theme falls back
+            // to its light colors in this page: dark text on a dark theme.
+            color: configGeneral.enoughLanguages ? palette.windowText : "red"
             text: cfg_autodetect ? i18n("Please make sure that at least one language is selected.") : i18n(
                                        "Please make sure that at least two languages are selected.")
         }
@@ -766,11 +778,7 @@ Item {
                 j = j + 1
             }
         }
-        if (j > 1) {
-            notif.color = Kirigami.Theme.textColor
-        } else {
-            notif.color = "red"
-        }
+        enoughLanguages = j > 1
     }
     function changeEngine() {
         langModel.clear()

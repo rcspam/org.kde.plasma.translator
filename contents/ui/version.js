@@ -23,3 +23,9 @@ function isNewer(store, installed) {
     }
     return false
 }
+
+// What the update banner shows. A version that could not be read (store
+// not answered yet, metadata.json not read yet) is never an update.
+function updateAvailable(store, installed) {
+    return store.trim() !== "" && installed.trim() !== "" && isNewer(store, installed)
+}
