@@ -399,9 +399,11 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.right: parent.right
                     anchors.rightMargin: Kirigami.Units.smallSpacing
+                    // Release notes of this port. The store page no longer opens
+                    // its changelog tab from a URL anchor.
                     onClicked: {
                         Qt.openUrlExternally(
-                                    "https://store.kde.org/p/1395666#updates-panel")
+                                    "https://github.com/rcspam/org.kde.plasma.translator/releases")
                     }
                 }
             }
