@@ -8,6 +8,7 @@ import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.kirigami as Kirigami
 import ".."
 import "../servers/servers.js" as Servers
+import "../version.js" as Version
 
 Item {
     id: configGeneral
@@ -151,12 +152,6 @@ Item {
     // Store product of this Plasma 6 port (the Plasma 5 original is 1395666)
     readonly property string storeProductId: "2350395"
 
-    // "6.0.0" and "6.0" must compare equal: the store version field is
-    // hand-typed and rarely padded to three components.
-    function normalizeVersion(v) {
-        return v.trim().replace(/^v/i, "").replace(/(\.0+)+$/, "")
-    }
-
     function fetchUpdateInfo() {
         var xhr = new XMLHttpRequest()
         xhr.onreadystatechange = function() {
@@ -172,7 +167,7 @@ Item {
                     if (homepageMatch) serverpage = homepageMatch[1]
 
                     var outdated = serverversion !== ""
-                            && normalizeVersion(localversion) !== normalizeVersion(serverversion)
+                            && Version.isNewer(serverversion, localversion)
                     if (outdated && updatepath.startsWith(appdata)) {
                         t.state = 'notif'
                     } else if (outdated && !updatepath.startsWith(appdata)) {
