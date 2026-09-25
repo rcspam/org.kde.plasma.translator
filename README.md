@@ -12,6 +12,7 @@ Ported by **rcspam**.
 
 - Translate text between 160+ languages
 - Multiple translation engines: **Google**, **Yandex**, **Bing**, **Apertium**
+- Your own translation servers, local or online (see below)
 - Auto-detect source language
 - Text-to-speech (TTS) pronunciation
 - Clipboard integration (copy/paste)
@@ -40,6 +41,28 @@ sudo dnf install translate-shell
 # openSUSE
 sudo zypper install translate-shell
 ```
+
+translate-shell is not needed to translate with your own servers, only for the built-in engines and for pronunciation.
+
+### Translate the selected text
+
+Give the widget a global shortcut (right click > Configure > Keyboard Shortcuts). Pressing it translates the text currently selected in any window into your system language. A text already in your system language goes to the target language chosen in the widget instead. The **Destination** menu of the popup picks another language. This needs **wl-clipboard** on Wayland, or **xsel** on X11 (package names are the same on the distributions above).
+
+## Translation servers
+
+The **Servers** tab of the settings adds your own translation servers. Each one then shows up as an engine in the **General** tab. Supported types:
+
+| Type | Examples | Languages |
+|------|----------|-----------|
+| LibreTranslate | self-hosted Docker, public instances | read from the server |
+| DeepL | official API, free or pro key | read from the server |
+| DeepLX | self-hosted DeepL proxy | DeepL's list |
+| LLM (OpenAI-compatible) | Ollama, LM Studio, OpenAI, Mistral, Groq… | all |
+| Custom | any HTTP API | all |
+
+The **Test** button translates "Hello world" and refreshes the server's language list. Languages a server does not offer are greyed out in the General tab.
+
+For a custom server, the URL, headers and body accept these placeholders: `{text}` `{source}` `{target}` `{source_name}` `{target_name}` `{api_key}`. The result path points into the JSON answer (`translatedText`, `data.translations.0.text`…); leave it empty when the server answers with plain text.
 
 ## Installation
 

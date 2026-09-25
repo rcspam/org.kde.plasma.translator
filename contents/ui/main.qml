@@ -11,6 +11,9 @@ import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.kirigami as Kirigami
 import Qt5Compat.GraphicalEffects
 import ".."
+import "servers/servers.js" as Servers
+import "shell.js" as Shell
+import "lang.js" as Lang
 
 PlasmoidItem {
     id: root
@@ -33,6 +36,8 @@ PlasmoidItem {
     property string swapText: ""
     property int swapIndex: 0
     property string cfg_engine: plasmoid.configuration.engine
+    // True when the engine is a user-defined server instead of translate-shell
+    readonly property bool usesServer: Servers.isServerEngine(cfg_engine)
     property bool cfg_autodetect: plasmoid.configuration.autodetect
     property bool indlang: false
     property bool pins: false
@@ -50,9 +55,15 @@ PlasmoidItem {
         id: langModel
     }
 
+    ServerClient {
+        id: serverClient
+    }
+
     Window {
         id: info
         visible: false
+        width: 430
+        height: 330
         minimumWidth: Kirigami.Units.gridUnit * 15
         minimumHeight: Kirigami.Units.gridUnit * 15
         title: i18n("Translator")
@@ -60,7 +71,9 @@ PlasmoidItem {
         color: Kirigami.Theme.backgroundColor
         onClosing: {
             windowtext = ""
-            xselclear.connectSource('xsel --clear')
+            root.selectionBusy = false
+            root.selectionRequest++ // drops the translation still running
+            root.clearSelection()
         }
 
         ColumnLayout {
@@ -87,10 +100,10 @@ PlasmoidItem {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignHCenter
                     model: root.langlist
                     currentIndex: getLocale()
-                    onCurrentIndexChanged: {
-                        root.popupIndex = destinationpopup.currentIndex
-                    }
-                    onActivated: {
+                    // Only a choice made here is kept for the next texts: the
+                    // index also changes to show the language a text went to
+                    onActivated: function(index) {
+                        root.popupIndex = index
                         falsetime.start()
                     }
                 }
@@ -108,14 +121,26 @@ PlasmoidItem {
                     }
                 }
             }
-            PlasmaComponents.TextArea {
-                id: windowarea
+            Item {
                 Layout.fillWidth: true
-                focus: true
                 Layout.fillHeight: true
-                wrapMode: Text.WordWrap
-                readOnly: true
-                text: root.windowtext
+                PlasmaComponents.ScrollView {
+                    anchors.fill: parent
+                    // Text wraps, so only vertical scrolling is needed
+                    QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+                    PlasmaComponents.TextArea {
+                        id: windowarea
+                        focus: true
+                        wrapMode: Text.Wrap
+                        readOnly: true
+                        text: root.windowtext
+                    }
+                }
+                QQC2.BusyIndicator {
+                    anchors.centerIn: parent
+                    running: root.selectionBusy
+                    visible: running
+                }
             }
         }
 
@@ -190,43 +215,24 @@ PlasmoidItem {
         signal exited(string cmd, int exitCode, int exitStatus, string stdout, string stderr)
     }
 
+    // Runs a shell command, then calls done(stdout, stderr, exitCode)
     Plasma5Support.DataSource {
-        id: xsel
+        id: runner
         engine: "executable"
         connectedSources: []
+        property var callbacks: ({})
         onNewData: function(sourceName, data) {
-            var exitCode = data["exit code"]
-            var exitStatus = data["exit status"]
-            var stdout = data["stdout"]
-            var stderr = data["stderr"]
-            exited(sourceName, exitCode, exitStatus, stdout, stderr)
+            var done = callbacks[sourceName]
+            delete callbacks[sourceName]
             disconnectSource(sourceName)
-        }
-        function connectCmd(cmd) {
-            if (cmd) {
-                connectSource(cmd)
+            if (done) {
+                done(data["stdout"], data["stderr"], data["exit code"])
             }
         }
-        signal exited(string cmd, int exitCode, int exitStatus, string stdout, string stderr)
-    }
-    Plasma5Support.DataSource {
-        id: xselclear
-        engine: "executable"
-        connectedSources: []
-        onNewData: function(sourceName, data) {
-            var exitCode = data["exit code"]
-            var exitStatus = data["exit status"]
-            var stdout = data["stdout"]
-            var stderr = data["stderr"]
-            exited(sourceName, exitCode, exitStatus, stdout, stderr)
-            disconnectSource(sourceName)
+        function run(cmd, done) {
+            callbacks[cmd] = done
+            connectSource(cmd)
         }
-        function connectCmd(cmd) {
-            if (cmd) {
-                connectSource(cmd)
-            }
-        }
-        signal exited(string cmd, int exitCode, int exitStatus, string stdout, string stderr)
     }
 
     // Helper pour accéder au presse-papiers
@@ -262,27 +268,72 @@ PlasmoidItem {
 
     function detectsource() {
         root.detectlist = []
-        var formattedText3 = root.lefttext.replace(/"/g,
-                                                   '\\\"').replace("`", "\'")
-        detect.connectCmd("trans " + formattedText3 + " -identify")
+        // "--" keeps a text starting with "-" from being read as an option
+        detect.connectCmd("trans -identify -- " + Shell.quote(root.lefttext))
+    }
+
+    function langName(code) {
+        var languages = JSON.parse(cfg_languages)
+        for (var i = 0; i < languages.length; i++) {
+            if (languages[i].code === code) {
+                return languages[i].lang
+            }
+        }
+        return ""
+    }
+
+    // done(result, server) with result = { text, detected } or { error, detail }
+    function translateWithServer(text, source, target, done) {
+        var server = Servers.findServer(Servers.parseList(plasmoid.configuration.servers),
+                                        plasmoid.configuration.engine)
+        if (!server) {
+            done({ error: "noserver" }, null)
+            return
+        }
+        serverClient.translate(server, {
+            text: text,
+            source: source,
+            target: target,
+            sourceName: langName(source),
+            targetName: langName(target)
+        }, function(result) {
+            done(result, server)
+        })
+    }
+
+    function serverFailure(result, server) {
+        return i18n("Unable to translate.") + "\n" + serverClient.errorText(result, server)
     }
 
     function translate() {
         root.ind = true
-        var formattedText = root.lefttext.replace(/"/g,
-                                                  '\\\"').replace("`", "\'")
+        if (root.usesServer) {
+            var source = root.cfg_autodetect ? "auto" : root.codelist[root.sourceIndex]
+            translateWithServer(root.lefttext, source, root.codelist[root.destinationIndex],
+                                function(result, server) {
+                if (result.error) {
+                    root.righttext = serverFailure(result, server)
+                } else {
+                    root.righttext = result.text
+                    if (root.cfg_autodetect && result.detected) {
+                        root.detectlist = [langName(result.detected) || result.detected]
+                        root.indlang = true
+                    }
+                }
+                root.ind = false
+            })
+            return
+        }
         var autod = root.cfg_autodetect == true ? "" : root.codelist[root.sourceIndex]
         executable.connectCmd(
                     "trans {" + autod + "=" + root.codelist[root.destinationIndex]
-                    + "} " + " " + "\"" + formattedText + "\"" + " -brief "
-                    + "-e " + root.cfg_engine + " -no-bidi")
+                    + "} -brief -e " + root.cfg_engine + " -no-bidi -- "
+                    + Shell.quote(root.lefttext))
     }
 
     function listend(text, orig) {
-        var formattedText2 = text.replace(/"/g, '\\\"')
-        listen.connectCmd("trans " + orig + ":en " + "\"" + formattedText2 + "\""
-                    + " -brief -no-translate -download-audio-as trans.mp3 && mv trans.mp3 "
-                    + tmpfolder)
+        listen.connectCmd("trans " + orig + ":en -brief -no-translate -download-audio-as trans.mp3 -- "
+                    + Shell.quote(text) + " && mv trans.mp3 " + Shell.quote(tmpfolder))
     }
 
     Connections {
@@ -316,20 +367,89 @@ PlasmoidItem {
         }
     }
 
-    Connections {
-        target: xsel
-        function onExited(cmd, exitCode, exitStatus, stdout, stderr) {
-            var formattedText = stdout.trim()
-            var errorText = stderr.trim()
-            if (formattedText.length > 0 || errorText.length > 0) {
-                windowtext = formattedText.length > 0 ? formattedText : errorText
-                windowarea.text = windowtext
-                info.show()
-                windowarea.focus = true
-            } else {
-                root.expanded = true
-            }
+    // The primary selection is read with wl-clipboard on Wayland, xsel on X11
+    readonly property bool wayland: Qt.platform.pluginName === "wayland"
+    readonly property string selectionPackage: wayland ? "wl-clipboard" : "xsel"
+    // wl-paste reports an empty selection on stderr, which must not be shown
+    readonly property string selectionCmd: wayland ? "wl-paste --primary --no-newline 2>/dev/null"
+                                                   : "xsel -o"
+    readonly property string clearSelectionCmd: wayland ? "wl-copy --primary --clear" : "xsel --clear"
+    // Updated each time the selection is cleared (startup, selection window closed)
+    property bool selectionToolFound: true
+    // A selected text is being translated: the window is open, empty, with a spinner
+    property bool selectionBusy: false
+    // Only the answer to the latest request is shown
+    property int selectionRequest: 0
+
+    function clearSelection() {
+        runner.run(root.clearSelectionCmd, function(stdout, stderr, exitCode) {
+            // 127: the shell did not find the command
+            root.selectionToolFound = exitCode !== 127
+        })
+    }
+
+    function showSelectionWindow(text) {
+        windowtext = text
+        windowarea.text = windowtext
+        info.show()
+        windowarea.focus = true
+    }
+
+    // Translates a selected text into the popup's language. A text that comes
+    // back nearly unchanged was already in that language: it goes to
+    // Lang.otherTarget instead.
+    function translateSelection(text) {
+        if (text.length === 0) {
+            root.expanded = true
+            return
         }
+        var system = Lang.systemCode(Qt.locale().name, root.codelist)
+        var popup = root.popupIndex == -1 ? system : root.codelist[root.popupIndex]
+        var favorite = root.codelist[root.destinationIndex] || popup
+        // LLMs take a few seconds: open the window at once
+        var request = ++root.selectionRequest
+        showSelectionWindow("")
+        root.selectionBusy = true
+        translateTo(text, popup, function(output, ok) {
+            var other = Lang.otherTarget(popup, favorite, system)
+            if (ok && other !== popup && Lang.unchanged(text, output)) {
+                translateTo(text, other, function(output2) {
+                    showTranslation(output2, other, request)
+                })
+            } else {
+                showTranslation(output, popup, request)
+            }
+        })
+    }
+
+    function showTranslation(output, target, request) {
+        if (request !== root.selectionRequest) {
+            return // window closed or another language chosen meanwhile
+        }
+        root.selectionBusy = false
+        if (output.length === 0) {
+            info.hide()
+            root.expanded = true
+            return
+        }
+        destinationpopup.currentIndex = root.codelist.indexOf(target)
+        showSelectionWindow(output)
+    }
+
+    // Same call for every engine: done(output, ok), output being the
+    // translation, or the error to show when ok is false
+    function translateTo(text, target, done) {
+        if (root.usesServer) {
+            translateWithServer(text, "auto", target, function(result, server) {
+                done(result.error ? serverFailure(result, server) : result.text, !result.error)
+            })
+            return
+        }
+        runner.run("trans :" + target + " -brief -e " + root.cfg_engine + " -no-bidi -- "
+                   + Shell.quote(text), function(stdout, stderr) {
+            var output = stdout.trim()
+            done(output || stderr.trim(), output.length > 0)
+        })
     }
 
     Connections {
@@ -352,7 +472,7 @@ PlasmoidItem {
         root.sourceIndex = plasmoid.configuration.sourceIndex
         root.destinationIndex = plasmoid.configuration.destinationIndex
         checkPackage()
-        xselclear.connectSource('xsel --clear')
+        clearSelection()
     }
 
     Connections {
@@ -362,6 +482,24 @@ PlasmoidItem {
             root.sourceIndex = 0
             root.destinationIndex = cfg_autodetect ? 0 : 1
         }
+        function onEngineChanged() {
+            reloadKeepingSelection()
+        }
+        function onServersChanged() {
+            reloadKeepingSelection()
+        }
+    }
+
+    // The language list depends on the engine: keep the chosen languages
+    // when they are still offered.
+    function reloadKeepingSelection() {
+        var source = root.codelist[root.sourceIndex]
+        var destination = root.codelist[root.destinationIndex]
+        loadLangModel()
+        var s = root.codelist.indexOf(source)
+        var d = root.codelist.indexOf(destination)
+        root.sourceIndex = s !== -1 ? s : 0
+        root.destinationIndex = d !== -1 ? d : Math.min(1, root.codelist.length - 1)
     }
 
     Connections {
@@ -375,9 +513,15 @@ PlasmoidItem {
         interval: 0
         repeat: false
         onTriggered: {
-            var v = root.popupIndex == -1 ? "" : root.codelist[root.popupIndex]
             root.expanded = false
-            xsel.connectCmd('xsel -o | trans :' + v + ' -e ' + root.cfg_engine + ' -b  -no-bidi')
+            if (!root.selectionToolFound) {
+                showSelectionWindow(i18n("Reading the selected text needs %1, which is not installed.",
+                                         root.selectionPackage))
+                return
+            }
+            runner.run(root.selectionCmd, function(stdout) {
+                translateSelection(stdout.trim())
+            })
         }
     }
 
@@ -434,7 +578,7 @@ PlasmoidItem {
             Layout.fillWidth: true
             height: parent.height
             width: parent.width
-            visible: root.langlist.length > 1 && root.pack == true
+            visible: root.langlist.length > 1 && (root.pack || root.usesServer)
             GridLayout {
                 columns: 3
                 width: parent.width
@@ -480,19 +624,23 @@ PlasmoidItem {
                             QQC2.ToolTip.visible: hovered
                         }
                     }
-                    PlasmaComponents.TextArea {
-                        id: leftPanel
+                    PlasmaComponents.ScrollView {
+                        // Text wraps, so only vertical scrolling is needed
+                        QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Layout.maximumWidth: parent.width
-                        wrapMode: Text.WordWrap
-                        text: root.lefttext
-                        onTextChanged: {
-                            root.lefttext = leftPanel.text
-                            if (this.text.length == 0) {
-                                var copy = ["Autodetect"]
-                                root.detectlist = copy
-                                root.indlang = false
+                        PlasmaComponents.TextArea {
+                            id: leftPanel
+                            wrapMode: Text.Wrap
+                            text: root.lefttext
+                            onTextChanged: {
+                                root.lefttext = leftPanel.text
+                                if (this.text.length == 0) {
+                                    var copy = ["Autodetect"]
+                                    root.detectlist = copy
+                                    root.indlang = false
+                                }
                             }
                         }
                     }
@@ -620,15 +768,19 @@ PlasmoidItem {
                             QQC2.ToolTip.visible: hovered
                         }
                     }
-                    PlasmaComponents.TextArea {
-                        id: rightPanel
+                    PlasmaComponents.ScrollView {
+                        // Text wraps, so only vertical scrolling is needed
+                        QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        wrapMode: Text.WordWrap
-                        readOnly: true
-                        text: root.righttext
-                        onTextChanged: {
-                            root.righttext = rightPanel.text
+                        PlasmaComponents.TextArea {
+                            id: rightPanel
+                            wrapMode: Text.Wrap
+                            readOnly: true
+                            text: root.righttext
+                            onTextChanged: {
+                                root.righttext = rightPanel.text
+                            }
                         }
                     }
 
@@ -709,8 +861,9 @@ PlasmoidItem {
                         root.righttext = ""
                         root.lefttext = leftPanel.text
                         translate()
+                        // Servers report the detected language with the translation
                         if (root.cfg_autodetect == true
-                                && root.indlang == false) {
+                                && root.indlang == false && !root.usesServer) {
                             detectsource()
                         }
                     }
@@ -727,8 +880,9 @@ PlasmoidItem {
                         root.righttext = ""
                         root.lefttext = leftPanel.text
                         translate()
+                        // Servers report the detected language with the translation
                         if (root.cfg_autodetect == true
-                                && root.indlang == false) {
+                                && root.indlang == false && !root.usesServer) {
                             detectsource()
                         }
                     }
@@ -811,7 +965,7 @@ PlasmoidItem {
 
         ColumnLayout {
             anchors.centerIn: parent
-            visible: root.pack == false
+            visible: !root.pack && !root.usesServer
             PlasmaComponents.Label {
                 id: install
                 Layout.fillWidth: true
@@ -832,11 +986,19 @@ PlasmoidItem {
 
     function loadLangModel() {
         var languages = JSON.parse(cfg_languages)
+        // Read the configuration directly: this runs from its change
+        // handlers, possibly before the cfg_* bindings are updated.
+        var engine = plasmoid.configuration.engine
+        var server = Servers.findServer(Servers.parseList(plasmoid.configuration.servers), engine)
+        var serverCodes = server ? Servers.enabledCodes(server) : null
         var langcopy = []
         var codecopy = []
         var ttscopy = []
         for (var i = 0; i < languages.length; i++) {
-            if (languages[i].active && languages[i].enabled) {
+            var supported = Servers.isServerEngine(engine)
+                    ? serverCodes === null || serverCodes.indexOf(languages[i].code) !== -1
+                    : languages[i][engine] !== false
+            if (languages[i].active && supported) {
                 langcopy.push(languages[i].lang)
                 codecopy.push(languages[i].code)
                 ttscopy.push(languages[i].tts)
@@ -848,9 +1010,7 @@ PlasmoidItem {
     }
 
     function getLocale() {
-        var myLocale = Qt.locale().name.split("_")[0]
-        var myIndex = root.codelist.indexOf(myLocale)
-        return myIndex
+        return root.codelist.indexOf(Lang.systemCode(Qt.locale().name, root.codelist))
     }
     MediaPlayer {
         id: playSound

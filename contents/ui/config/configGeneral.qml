@@ -7,6 +7,7 @@ import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.kirigami as Kirigami
 import ".."
+import "../servers/servers.js" as Servers
 
 Item {
     id: configGeneral
@@ -14,8 +15,19 @@ Item {
     property string cfg_languages: plasmoid.configuration.languages
     property bool cfg_checkall: plasmoid.configuration.checkall
     property string cfg_engine: plasmoid.configuration.engine
-    property var enginemodel: ["google", "yandex", "bing", "apertium"]
+    // translate-shell engines, then the user-defined servers (Servers tab)
+    property var enginemodel: {
+        var list = ["google", "yandex", "bing", "apertium"].map(function(e) {
+            return { label: e, value: e }
+        })
+        Servers.parseList(plasmoid.configuration.servers).forEach(function(s) {
+            list.push({ label: s.name || s.type, value: Servers.engineOf(s) })
+        })
+        return list
+    }
     property bool cfg_autodetect: plasmoid.configuration.autodetect
+    property string cfg_servers
+    property string cfg_serversDefault
 
     // Properties injected by Plasma config system
     property string cfg_languagesDefault
@@ -407,14 +419,25 @@ Item {
             }
             QQC2.ComboBox {
                 Layout.fillWidth: false
-                implicitWidth: 90
                 id: engine
                 model: configGeneral.enginemodel
-                currentIndex: engine.model.indexOf(
-                                  plasmoid.configuration.engine)
+                textRole: "label"
+                valueRole: "value"
+                implicitContentWidthPolicy: QQC2.ComboBox.WidestText
+                wheelEnabled: false
+                // Looked up in JS: indexOfValue() would run before the model is set
+                currentIndex: {
+                    var list = configGeneral.enginemodel
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].value === plasmoid.configuration.engine) {
+                            return i
+                        }
+                    }
+                    return -1
+                }
                 onActivated: {
-                    configGeneral.cfg_engine = model[index]
-                    plasmoid.configuration.engine = model[index]
+                    configGeneral.cfg_engine = currentValue
+                    plasmoid.configuration.engine = currentValue
                 }
             }
             Item {
@@ -742,7 +765,7 @@ Item {
     function getLangNumbers() {
         var j = 0
         for (var i = 0; i < langModel.count; i++) {
-            if (langModel.get(i).active === true) {
+            if (langModel.get(i).active === true && langModel.get(i).enabled === true) {
                 j = j + 1
             }
         }
@@ -754,7 +777,7 @@ Item {
     }
     function changeEngine() {
         langModel.clear()
-        var eng = configGeneral.cfg_engine
+        var eng = plasmoid.configuration.engine
         if (!cfg_languages || cfg_languages.length === 0) {
             return
         }
@@ -764,24 +787,22 @@ Item {
         } catch(e) {
             return
         }
+        var server = Servers.findServer(Servers.parseList(plasmoid.configuration.servers), eng)
+        var serverCodes = server ? Servers.enabledCodes(server) : null
         for (var i = 0; i < languages.length; i++) {
+            // Unsupported languages are greyed out but keep their "active"
+            // state, so switching back to another engine restores them.
+            var supported = Servers.isServerEngine(eng)
+                    ? serverCodes === null || serverCodes.indexOf(languages[i].code) !== -1
+                    : languages[i][eng] !== false
             langModel.append(languages[i])
             langModel.set(i, {
-                              "enabled": true
-                          })
-            langModel.set(i, {
+                              "enabled": supported,
                               "com": languages[i].lang + languages[i].nativelang + languages[i].code
                           })
         }
-        for (var j = 0; j < languages.length; j++) {
-            if (langModel.get(j)[eng] === false) {
-                langModel.set(j, {
-                                  "enabled": false,
-                                  "active": false
-                              })
-            }
-        }
         applyFilter()
+        getLangNumbers()
     }
     function applyUpdate() {
         updatetext.text = i18n("Updating...")

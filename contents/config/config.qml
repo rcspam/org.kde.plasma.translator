@@ -6,4 +6,9 @@ ConfigModel {
         icon: "crow-translate"
         source: "config/configGeneral.qml"
     }
+    ConfigCategory {
+        name: i18n("Servers")
+        icon: "network-server"
+        source: "config/configServers.qml"
+    }
 }

@@ -9,8 +9,9 @@
         "Icon": "globe",
         "Id": "org.kde.plasma.translator",
         "Name": "Translator",
-        "Version": "6.0.1",
-        "License": "MIT"
+        "Version": "6.1.0",
+        "License": "MIT",
+        "Website": "https://github.com/rcspam/org.kde.plasma.translator"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "KPackageStructure": "Plasma/Applet"

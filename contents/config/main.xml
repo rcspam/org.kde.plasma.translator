@@ -155,5 +155,9 @@
 					              <label>mode</label>
 						       <default>0</default>
 						  </entry>
+  <entry name="servers" type="String">
+    <label>User-defined translation servers (JSON array)</label>
+    <default>[]</default>
+  </entry>
   </group>
 </kcfg>
