@@ -145,6 +145,10 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 
 ## Changelog
 
+### 6.1.1
+
+- Fixed: the Changelog button of the update banner opened the page of the old Plasma 5 widget. It now opens the release notes on GitHub.
+
 ### 6.1.0
 
 - Your own translation servers: LibreTranslate, DeepL, DeepLX, LLMs through any OpenAI-compatible API (Ollama, LM Studio, OpenAI, Mistral, Groq…) and custom HTTP APIs.
