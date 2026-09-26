@@ -9,6 +9,7 @@ import org.kde.kirigami as Kirigami
 import ".."
 import "../servers/servers.js" as Servers
 import "../version.js" as Version
+import "../lang.js" as Lang
 
 Item {
     id: configGeneral
@@ -29,6 +30,24 @@ Item {
     property bool cfg_autodetect: plasmoid.configuration.autodetect
     property string cfg_servers
     property string cfg_serversDefault
+    property string cfg_nativeLanguage
+    property string cfg_nativeLanguageDefault
+    // Native language menu: the system language (empty value), then every language
+    property var nativemodel: {
+        var languages = []
+        try {
+            languages = JSON.parse(cfg_languages)
+        } catch (e) {
+        }
+        var codes = languages.map(function(l) { return l.code })
+        var system = Lang.systemCode(Qt.locale().name, codes)
+        var found = languages.filter(function(l) { return l.code === system })[0]
+        var list = [{ label: i18n("System language (%1)", found ? found.lang : system), value: "" }]
+        languages.forEach(function(l) {
+            list.push({ label: l.lang, value: l.code })
+        })
+        return list
+    }
 
     // Properties injected by Plasma config system
     property string cfg_languagesDefault
@@ -458,6 +477,36 @@ Item {
                 onClicked: {
                     cfg_autodetect = checked
                 }
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            QQC2.Label {
+                text: i18n("Native language:")
+            }
+            QQC2.ComboBox {
+                id: nativeLanguage
+                model: configGeneral.nativemodel
+                textRole: "label"
+                valueRole: "value"
+                implicitContentWidthPolicy: QQC2.ComboBox.WidestText
+                wheelEnabled: false
+                currentIndex: {
+                    var list = configGeneral.nativemodel
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].value === configGeneral.cfg_nativeLanguage) {
+                            return i
+                        }
+                    }
+                    return 0
+                }
+                onActivated: configGeneral.cfg_nativeLanguage = currentValue
+                QQC2.ToolTip.text: i18n("The selection shortcut translates texts into this language, or into the widget's target language when they are already in it.")
+                QQC2.ToolTip.visible: hovered
+                QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
+            Item {
+                Layout.fillWidth: true
             }
         }
 

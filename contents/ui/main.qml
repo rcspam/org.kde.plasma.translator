@@ -99,7 +99,7 @@ PlasmoidItem {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignLeft | Qt.AlignHCenter
                     model: root.langlist
-                    currentIndex: getLocale()
+                    currentIndex: root.codelist.indexOf(nativeCode())
                     // Only a choice made here is kept for the next texts: the
                     // index also changes to show the language a text went to
                     onActivated: function(index) {
@@ -395,23 +395,23 @@ PlasmoidItem {
         windowarea.focus = true
     }
 
-    // Translates a selected text into the popup's language. A text that comes
-    // back nearly unchanged was already in that language: it goes to
-    // Lang.otherTarget instead.
+    // Translates a selected text into the popup's language (the native one
+    // by default). A text that comes back nearly unchanged was already in that
+    // language: it goes to Lang.otherTarget instead.
     function translateSelection(text) {
         if (text.length === 0) {
             root.expanded = true
             return
         }
-        var system = Lang.systemCode(Qt.locale().name, root.codelist)
-        var popup = root.popupIndex == -1 ? system : root.codelist[root.popupIndex]
+        var nativeLang = nativeCode()
+        var popup = root.popupIndex == -1 ? nativeLang : root.codelist[root.popupIndex]
         var favorite = root.codelist[root.destinationIndex] || popup
         // LLMs take a few seconds: open the window at once
         var request = ++root.selectionRequest
         showSelectionWindow("")
         root.selectionBusy = true
         translateTo(text, popup, function(output, ok) {
-            var other = Lang.otherTarget(popup, favorite, system)
+            var other = Lang.otherTarget(popup, favorite, nativeLang)
             if (ok && other !== popup && Lang.unchanged(text, output)) {
                 translateTo(text, other, function(output2) {
                     showTranslation(output2, other, request)
@@ -1009,8 +1009,8 @@ PlasmoidItem {
         root.ttslist = ttscopy
     }
 
-    function getLocale() {
-        return root.codelist.indexOf(Lang.systemCode(Qt.locale().name, root.codelist))
+    function nativeCode() {
+        return Lang.nativeCode(plasmoid.configuration.nativeLanguage, Qt.locale().name, root.codelist)
     }
     MediaPlayer {
         id: playSound

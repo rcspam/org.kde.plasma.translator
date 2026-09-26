@@ -5,12 +5,12 @@ import "../contents/ui/lang.js" as Lang
 TestCase {
     name: "Lang"
 
-    // Selection popup, text already in the popup's language. System language is "fr".
+    // Selection popup, text already in the popup's language. Native language is "fr".
     function test_otherTarget_data() {
         return [
-            { tag: "popup on the system language", popup: "fr", favorite: "en", expected: "en" },
+            { tag: "popup on the native language", popup: "fr", favorite: "en", expected: "en" },
             { tag: "popup on another language", popup: "de", favorite: "en", expected: "fr" },
-            { tag: "favorite is the system language", popup: "fr", favorite: "fr", expected: "fr" },
+            { tag: "favorite is the native language", popup: "fr", favorite: "fr", expected: "fr" },
         ]
     }
     function test_otherTarget(row) {
@@ -46,5 +46,16 @@ TestCase {
     function test_systemCode(row) {
         var codes = ["en", "fr", "zh-CN", "zh-TW", "no", "sr-Cyrl"]
         compare(Lang.systemCode(row.locale, codes), row.expected)
+    }
+
+    // System in English, native language chosen in the settings or not
+    function test_nativeCode_data() {
+        return [
+            { tag: "nothing chosen", chosen: "", expected: "en" },
+            { tag: "chosen language", chosen: "ru", expected: "ru" },
+        ]
+    }
+    function test_nativeCode(row) {
+        compare(Lang.nativeCode(row.chosen, "en_US", ["en", "fr", "ru"]), row.expected)
     }
 }

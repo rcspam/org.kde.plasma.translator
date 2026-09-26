@@ -49,8 +49,10 @@ translate-shell is not needed to translate with your own servers, only for the b
 
 Give the widget a global shortcut (right click > Configure > Keyboard Shortcuts). Pressing it translates the text currently selected in any window, and shows the result in a small window:
 
-- a text in any other language is translated into your system language
-- a text already in your system language is translated into the target language chosen in the widget
+- a text in any other language is translated into your native language
+- a text already in your native language is translated into the target language chosen in the widget
+
+Your native language is the system language unless you pick another one in the settings (**General** > **Native language**), for example when your desktop is in English or in a language you are learning.
 
 The **Destination** menu of that window picks another language by hand. This needs **wl-clipboard** on Wayland, or **xsel** on X11 (package names are the same on the distributions above).
 

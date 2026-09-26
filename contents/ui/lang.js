@@ -1,10 +1,10 @@
 .pragma library
 
 // Target for a selected text that is already in the popup's language: the
-// favorite language when the popup is on the system language, else the
-// system language.
-function otherTarget(popupTarget, favorite, systemTarget) {
-    return popupTarget === systemTarget ? favorite : systemTarget
+// favorite language when the popup is on the native language, else the
+// native language.
+function otherTarget(popupTarget, favorite, nativeTarget) {
+    return popupTarget === nativeTarget ? favorite : nativeTarget
 }
 
 // Splits on spaces, digits and punctuation (QML's JavaScript has no \p{L}).
@@ -42,4 +42,11 @@ function systemCode(localeName, codes) {
         return "no"
     }
     return lang
+}
+
+// Native language: the one chosen in the settings, else the system language.
+// The system language is not always the native one (English UI, language
+// being learnt).
+function nativeCode(chosen, localeName, codes) {
+    return chosen || systemCode(localeName, codes)
 }

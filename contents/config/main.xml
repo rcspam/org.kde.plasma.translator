@@ -155,6 +155,10 @@
 					              <label>mode</label>
 						       <default>0</default>
 						  </entry>
+  <entry name="nativeLanguage" type="String">
+    <label>Native language code for the selection shortcut (empty: system language)</label>
+    <default></default>
+  </entry>
   <entry name="servers" type="String">
     <label>User-defined translation servers (JSON array)</label>
     <default>[]</default>
