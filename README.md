@@ -147,6 +147,10 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 
 ## Changelog
 
+### 6.1.3
+
+- New: a Native language setting (General tab) for the selection shortcut, for when the system language is not yours (English desktop, language you are learning). By default it keeps the system language and shows which one it is.
+
 ### 6.1.2
 
 - Fixed: the update checker never read the installed version, so the settings always showed "Update is available".
