@@ -152,6 +152,12 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 
 ## Changelog
 
+### 6.1.4
+
+- New: an Auto entry in the widget's Destination menu, now the default. A text goes into your native language, or into your second language when it is already in the native one. The second language is a new setting (General tab, English by default). A destination language you had chosen stays as it is.
+- New: Autodetect source is on by default.
+- Fixed: with the built-in engines and Autodetect, the Source menu showed raw color codes ("[1mEnglish") instead of the detected language, and could keep the language of a previous text.
+
 ### 6.1.3
 
 - New: a Native language setting (General tab) for the selection shortcut, for when the system language is not yours (English desktop, language you are learning). By default it keeps the system language and shows which one it is.
