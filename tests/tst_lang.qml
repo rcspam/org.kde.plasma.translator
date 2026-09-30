@@ -58,4 +58,33 @@ TestCase {
     function test_nativeCode(row) {
         compare(Lang.nativeCode(row.chosen, "en_US", ["en", "fr", "ru"]), row.expected)
     }
+
+    // Output of trans -identify, which prints colors even when not in a terminal
+    function test_identifiedCode_data() {
+        return [
+            { tag: "colors", expected: "ru", output:
+                "\u001b[1mрусский\n\u001b[22mName                  \u001b[1mRussian\u001b[22m\n"
+                + "Family                \u001b[1mIndo-European\u001b[22m\n"
+                + "Code                  \u001b[1mru\u001b[22m\n"
+                + "ISO 639-3             \u001b[1mrus\u001b[22m\n" },
+            { tag: "no colors", expected: "zh-CN", output:
+                "中文(简体)\nName                  Chinese (Simplified)\nCode                  zh-CN\n" },
+            { tag: "nothing identified", expected: "", output: "" },
+        ]
+    }
+    function test_identifiedCode(row) {
+        compare(Lang.identifiedCode(row.output), row.expected)
+    }
+
+    // Auto destination, native language "ru", second language "en"
+    function test_autoTarget_data() {
+        return [
+            { tag: "source unknown", source: "auto", expected: "ru" },
+            { tag: "source is another language", source: "de", expected: "ru" },
+            { tag: "source is the native language", source: "ru", expected: "en" },
+        ]
+    }
+    function test_autoTarget(row) {
+        compare(Lang.autoTarget(row.source, "ru", "en"), row.expected)
+    }
 }

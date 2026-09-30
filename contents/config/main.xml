@@ -137,7 +137,7 @@
 	  </entry>
 	  <entry name="autodetect" type="Bool">
 	              <label>Autodetect</label>
-		       <default>false</default>
+		       <default>true</default>
 		  </entry>
 		  <entry name="checkall" type="Bool">
 		              <label>Checkall</label>
@@ -149,7 +149,7 @@
 				  </entry>
 				  <entry name="destinationIndex" type="Int">
 				              <label>destinationIndex</label>
-					       <default>1</default>
+					       <default>-1</default>
 					  </entry>
 					  <entry name="mode" type="Int">
 					              <label>mode</label>
@@ -158,6 +158,10 @@
   <entry name="nativeLanguage" type="String">
     <label>Native language code for the selection shortcut (empty: system language)</label>
     <default></default>
+  </entry>
+  <entry name="secondLanguage" type="String">
+    <label>Language for texts already in the native language, with the Auto destination</label>
+    <default>en</default>
   </entry>
   <entry name="servers" type="String">
     <label>User-defined translation servers (JSON array)</label>

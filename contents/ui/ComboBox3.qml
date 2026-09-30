@@ -53,6 +53,13 @@ PlasmaComponents.ComboBox {
         horizontalAlignment: Text.AlignLeft
         verticalAlignment: Text.AlignVCenter
         opacity: control.enabled ? 1 : 0.3
+        // Setting the text puts the cursor at its end: a long name would show
+        // its end only. Not while the user types.
+        onTextChanged: {
+            if (!activeFocus) {
+                cursorPosition = 0
+            }
+        }
         onFocusChanged: {
             if (focus) {
 

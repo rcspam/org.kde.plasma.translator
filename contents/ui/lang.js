@@ -7,6 +7,19 @@ function otherTarget(popupTarget, favorite, nativeTarget) {
     return popupTarget === nativeTarget ? favorite : nativeTarget
 }
 
+// Target of the Auto destination: the native language, or the second one for
+// a text known to be in the native language. An "auto" source is checked
+// after the translation (see unchanged).
+function autoTarget(source, nativeTarget, second) {
+    return source === nativeTarget ? second : nativeTarget
+}
+
+// Language code in the output of trans -identify ("Code  ru"), colored or not
+function identifiedCode(output) {
+    var match = output.replace(/\u001b\[[0-9;]*m/g, "").match(/^Code\s+(\S+)/m)
+    return match ? match[1] : ""
+}
+
 // Splits on spaces, digits and punctuation (QML's JavaScript has no \p{L}).
 // Typographic quotes, dashes and CJK punctuation included.
 var separators = /[\s0-9.,;:!?'"()\[\]{}<>\/\\|@#$%^&*+=_~`¡«»¿\u2013\u2014‘’“”…、。！（），：；？-]+/

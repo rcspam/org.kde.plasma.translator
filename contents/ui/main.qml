@@ -31,6 +31,16 @@ PlasmoidItem {
     property var detectlist: [i18n("Autodetect")]
     property int sourceIndex: plasmoid.configuration.sourceIndex
     property int destinationIndex: plasmoid.configuration.destinationIndex
+    // Destination "Auto" (destinationIndex -1, the default): native language,
+    // or second language for a text already in the native one
+    readonly property bool autoDestination: destinationIndex === -1
+    // Language of the text on the right, the one read aloud
+    property string resultCode: ""
+    readonly property int targetIndex: autoDestination ? codelist.indexOf(resultCode) : destinationIndex
+    readonly property string autoLabel: i18n("Auto (%1 / %2)", langName(nativeCode()) || nativeCode(),
+                                             langName(secondCode()) || secondCode())
+    // Only the answer to the latest translation is shown
+    property int translateRequest: 0
     property int popupIndex: -1
     property bool ind: false
     property string swapText: ""
@@ -50,6 +60,9 @@ PlasmoidItem {
                                    ).replace("file://", "")
 
     hideOnWindowDeactivate: !root.pins
+
+    // Also changed by the swap and when the language list changes
+    onDestinationIndexChanged: plasmoid.configuration.destinationIndex = destinationIndex
 
     LangModel {
         id: langModel
@@ -158,25 +171,6 @@ PlasmoidItem {
     }
 
     Plasma5Support.DataSource {
-        id: executable
-        engine: "executable"
-        connectedSources: []
-        onNewData: function(sourceName, data) {
-            var exitCode = data["exit code"]
-            var exitStatus = data["exit status"]
-            var stdout = data["stdout"]
-            var stderr = data["stderr"]
-            exited(sourceName, exitCode, exitStatus, stdout, stderr)
-            disconnectSource(sourceName)
-        }
-        function connectCmd(cmd) {
-            if (cmd) {
-                connectSource(cmd)
-            }
-        }
-        signal exited(string cmd, int exitCode, int exitStatus, string stdout, string stderr)
-    }
-    Plasma5Support.DataSource {
         id: checkpackage
         engine: "executable"
         connectedSources: []
@@ -269,7 +263,7 @@ PlasmoidItem {
     function detectsource() {
         root.detectlist = []
         // "--" keeps a text starting with "-" from being read as an option
-        detect.connectCmd("trans -identify -- " + Shell.quote(root.lefttext))
+        detect.connectCmd("trans -identify -no-ansi -- " + Shell.quote(root.lefttext))
     }
 
     function langName(code) {
@@ -307,28 +301,26 @@ PlasmoidItem {
 
     function translate() {
         root.ind = true
-        if (root.usesServer) {
-            var source = root.cfg_autodetect ? "auto" : root.codelist[root.sourceIndex]
-            translateWithServer(root.lefttext, source, root.codelist[root.destinationIndex],
-                                function(result, server) {
-                if (result.error) {
-                    root.righttext = serverFailure(result, server)
-                } else {
-                    root.righttext = result.text
-                    if (root.cfg_autodetect && result.detected) {
-                        root.detectlist = [langName(result.detected) || result.detected]
-                        root.indlang = true
-                    }
-                }
-                root.ind = false
-            })
-            return
+        var request = ++root.translateRequest
+        var source = root.cfg_autodetect ? "auto" : root.codelist[root.sourceIndex]
+        var target = root.codelist[root.destinationIndex]
+        var other = target
+        if (root.autoDestination) {
+            target = Lang.autoTarget(source, nativeCode(), secondCode())
+            other = secondCode()
         }
-        var autod = root.cfg_autodetect == true ? "" : root.codelist[root.sourceIndex]
-        executable.connectCmd(
-                    "trans {" + autod + "=" + root.codelist[root.destinationIndex]
-                    + "} -brief -e " + root.cfg_engine + " -no-bidi -- "
-                    + Shell.quote(root.lefttext))
+        translateOrOther(root.lefttext, source, target, other, function(output, used, ok, detected) {
+            if (request !== root.translateRequest) {
+                return
+            }
+            root.righttext = ok || root.usesServer ? output : i18n("Unable to translate.") + "\n" + output
+            root.resultCode = used
+            if (ok && root.cfg_autodetect && detected) {
+                root.detectlist = [langName(detected) || detected]
+                root.indlang = true
+            }
+            root.ind = false
+        })
     }
 
     function listend(text, orig) {
@@ -341,17 +333,6 @@ PlasmoidItem {
         function onExited(cmd, exitCode, exitStatus, stdout, stderr) {
             playSound.source = tmpfolder + "/trans.mp3"
             playSound.play()
-        }
-    }
-    Connections {
-        target: executable
-        function onExited(cmd, exitCode, exitStatus, stdout, stderr) {
-            var formattedText = stdout.trim()
-            var errorText = stderr
-            root.righttext = formattedText.length
-                    > 0 ? formattedText : "Unable to translate.\nError: " + errorText
-
-            root.ind = false
         }
     }
     Connections {
@@ -405,19 +386,28 @@ PlasmoidItem {
         }
         var nativeLang = nativeCode()
         var popup = root.popupIndex == -1 ? nativeLang : root.codelist[root.popupIndex]
-        var favorite = root.codelist[root.destinationIndex] || popup
+        var favorite = root.autoDestination ? secondCode() : root.codelist[root.destinationIndex] || popup
         // LLMs take a few seconds: open the window at once
         var request = ++root.selectionRequest
         showSelectionWindow("")
         root.selectionBusy = true
-        translateTo(text, popup, function(output, ok) {
-            var other = Lang.otherTarget(popup, favorite, nativeLang)
-            if (ok && other !== popup && Lang.unchanged(text, output)) {
-                translateTo(text, other, function(output2) {
-                    showTranslation(output2, other, request)
+        translateOrOther(text, "auto", popup, Lang.otherTarget(popup, favorite, nativeLang),
+                         function(output, used) {
+            showTranslation(output, used, request)
+        })
+    }
+
+    // Translates into target. A text of unknown language ("auto" source) that
+    // comes back nearly unchanged was already in that language: it goes to
+    // other instead. done(output, used target, ok, detected source)
+    function translateOrOther(text, source, target, other, done) {
+        translateTo(text, source, target, function(output, ok, detected) {
+            if (ok && source === "auto" && other !== target && Lang.unchanged(text, output)) {
+                translateTo(text, source, other, function(output2, ok2, detected2) {
+                    done(output2, other, ok2, detected2)
                 })
             } else {
-                showTranslation(output, popup, request)
+                done(output, target, ok, detected)
             }
         })
     }
@@ -436,16 +426,19 @@ PlasmoidItem {
         showSelectionWindow(output)
     }
 
-    // Same call for every engine: done(output, ok), output being the
-    // translation, or the error to show when ok is false
-    function translateTo(text, target, done) {
+    // Same call for every engine: done(output, ok, detected), output being the
+    // translation, or the error to show when ok is false. Only servers report
+    // the detected source language. source is a code or "auto".
+    function translateTo(text, source, target, done) {
         if (root.usesServer) {
-            translateWithServer(text, "auto", target, function(result, server) {
-                done(result.error ? serverFailure(result, server) : result.text, !result.error)
+            translateWithServer(text, source, target, function(result, server) {
+                done(result.error ? serverFailure(result, server) : result.text, !result.error,
+                     result.detected)
             })
             return
         }
-        runner.run("trans :" + target + " -brief -e " + root.cfg_engine + " -no-bidi -- "
+        var from = source === "auto" ? "" : source
+        runner.run("trans " + from + ":" + target + " -brief -e " + root.cfg_engine + " -no-bidi -- "
                    + Shell.quote(text), function(stdout, stderr) {
             var output = stdout.trim()
             done(output || stderr.trim(), output.length > 0)
@@ -455,14 +448,13 @@ PlasmoidItem {
     Connections {
         target: detect
         function onExited(cmd2, exitCode2, exitStatus2, stdout2, stderr2) {
-            var formattedText4 = stdout2.trim()
-            var lang = formattedText4.split("\n")[1].replace("[22m",
-                                                             "").replace(
-                        "Name                  [1m", "").replace("[22m", "")
-            var copy = []
-            root.detectlist = []
-            copy.push(lang)
-            root.detectlist = copy
+            var code = Lang.identifiedCode(stdout2)
+            if (code.length === 0) {
+                root.detectlist = [i18n("Autodetect")]
+                return
+            }
+            // Regional codes (pt-BR…) fall back to the language's name
+            root.detectlist = [langName(code) || langName(code.split("-")[0]) || code]
             root.indlang = true
         }
     }
@@ -480,7 +472,9 @@ PlasmoidItem {
         function onLanguagesChanged() {
             loadLangModel()
             root.sourceIndex = 0
-            root.destinationIndex = cfg_autodetect ? 0 : 1
+            if (!root.autoDestination) {
+                root.destinationIndex = cfg_autodetect ? 0 : 1
+            }
         }
         function onEngineChanged() {
             reloadKeepingSelection()
@@ -499,7 +493,9 @@ PlasmoidItem {
         var s = root.codelist.indexOf(source)
         var d = root.codelist.indexOf(destination)
         root.sourceIndex = s !== -1 ? s : 0
-        root.destinationIndex = d !== -1 ? d : Math.min(1, root.codelist.length - 1)
+        if (!root.autoDestination) {
+            root.destinationIndex = d !== -1 ? d : Math.min(1, root.codelist.length - 1)
+        }
     }
 
     Connections {
@@ -636,10 +632,11 @@ PlasmoidItem {
                             text: root.lefttext
                             onTextChanged: {
                                 root.lefttext = leftPanel.text
+                                // A new text needs a new detection
+                                root.indlang = false
                                 if (this.text.length == 0) {
                                     var copy = ["Autodetect"]
                                     root.detectlist = copy
-                                    root.indlang = false
                                 }
                             }
                         }
@@ -706,8 +703,7 @@ PlasmoidItem {
                         Layout.fillWidth: false
                         icon.name: "document-swap"
                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                        enabled: !cfg_autodetect
-                                 && root.sourceIndex !== root.destinationIndex
+                        enabled: swap.enabled
                         onClicked: {
                             swap.trigger()
                             playSound.stop()
@@ -740,19 +736,17 @@ PlasmoidItem {
                             text: i18n("Destination")
                             Layout.alignment: Qt.AlignLeft | Qt.AlignHCenter
                         }
-                        ComboBox3 {
+                        DestinationMenu {
                             editable: true
                             id: destination
                             Layout.fillWidth: true
                             rightPadding: sw.width
                             Layout.alignment: Qt.AlignLeft | Qt.AlignHCenter
-                            model: root.langlist
-                            currentIndex: model ? root.destinationIndex : -1
-                            onCurrentIndexChanged: {
-                                root.destinationIndex = destination.currentIndex
-                                plasmoid.configuration.destinationIndex = root.destinationIndex
-                            }
-                            onActivated: {
+                            languages: root.langlist
+                            autoLabel: root.autoLabel
+                            languageIndex: root.destinationIndex
+                            onChosen: function(index) {
+                                root.destinationIndex = index
                                 root.lefttext.length > 0 ? translate() : ""
                             }
                         }
@@ -792,10 +786,10 @@ PlasmoidItem {
                             Layout.fillWidth: false
                             id: playdest
                             transformOrigin: Item.Left
-                            icon.name: root.ttslist[root.destinationIndex]
+                            icon.name: root.ttslist[root.targetIndex]
                                         == true ? isPlaying()
                                                   && this.act ? "media-playback-stop" : "player-volume" : "audio-volume-muted"
-                            enabled: root.ttslist[root.destinationIndex]
+                            enabled: root.ttslist[root.targetIndex]
                                      == true ? rightPanel.text.length > 0
                                                && rightPanel.text.length
                                                < 201 ? true : false : false
@@ -806,7 +800,7 @@ PlasmoidItem {
                                     playSound.stop()
                                     root.actr = true
                                     listend(root.righttext,
-                                            root.codelist[root.destinationIndex])
+                                            root.codelist[root.targetIndex])
                                 }
                             }
                             QQC2.ToolTip.text: i18n("Listen")
@@ -839,8 +833,8 @@ PlasmoidItem {
                             Layout.fillWidth: false
                             enabled: leftPanel.text.length > 0
                                      && leftPanel.text.length < 5001
-                                     && root.sourceIndex !== root.destinationIndex
-                                     || root.cfg_autodetect ? true : false
+                                     && (root.cfg_autodetect || root.autoDestination
+                                         || root.sourceIndex !== root.destinationIndex)
                             onClicked: {
                                 trans.trigger()
                             }
@@ -906,6 +900,9 @@ PlasmoidItem {
             QQC2.Action {
                 id: swap
                 shortcut: "Ctrl+S"
+                // Both sides need a language
+                enabled: !root.cfg_autodetect && !root.autoDestination
+                         && root.sourceIndex !== root.destinationIndex
                 onTriggered: {
                     root.swapText = root.lefttext
                     root.lefttext = root.righttext
@@ -1011,6 +1008,10 @@ PlasmoidItem {
 
     function nativeCode() {
         return Lang.nativeCode(plasmoid.configuration.nativeLanguage, Qt.locale().name, root.codelist)
+    }
+
+    function secondCode() {
+        return plasmoid.configuration.secondLanguage || "en"
     }
     MediaPlayer {
         id: playSound

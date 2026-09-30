@@ -15,6 +15,7 @@ Ported by **rcspam**.
 - Your own translation servers, local or online: LibreTranslate, DeepL, LLMs through Ollama or any OpenAI-compatible API (see below)
 - Translate the text selected in any window with a global shortcut, in the right direction
 - Auto-detect source language
+- Auto destination: into your native language, or into a second language for texts already in yours
 - Text-to-speech (TTS) pronunciation
 - Clipboard integration (copy/paste)
 - Swap source and destination languages
@@ -50,11 +51,15 @@ translate-shell is not needed to translate with your own servers, only for the b
 Give the widget a global shortcut (right click > Configure > Keyboard Shortcuts). Pressing it translates the text currently selected in any window, and shows the result in a small window:
 
 - a text in any other language is translated into your native language
-- a text already in your native language is translated into the target language chosen in the widget
+- a text already in your native language is translated into the target language chosen in the widget (the second language when that target is **Auto**)
 
 Your native language is the system language unless you pick another one in the settings (**General** > **Native language**), for example when your desktop is in English or in a language you are learning.
 
 The **Destination** menu of that window picks another language by hand. This needs **wl-clipboard** on Wayland, or **xsel** on X11 (package names are the same on the distributions above).
+
+### Auto destination
+
+The first entry of the widget's **Destination** menu, **Auto** (the default), does the same in the widget itself: a text is translated into your native language, or into your second language when it is already in the native one. The second language is set in **General** > **Second language** (English by default), and the menu shows both, for example "Auto (Russian / English)".
 
 ## Translation servers
 

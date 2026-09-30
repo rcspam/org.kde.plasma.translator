@@ -43,10 +43,17 @@ Item {
         var system = Lang.systemCode(Qt.locale().name, codes)
         var found = languages.filter(function(l) { return l.code === system })[0]
         var list = [{ label: i18n("System language (%1)", found ? found.lang : system), value: "" }]
-        languages.forEach(function(l) {
-            list.push({ label: l.lang, value: l.code })
-        })
-        return list
+        return list.concat(secondmodel)
+    }
+    property string cfg_secondLanguage
+    property string cfg_secondLanguageDefault
+    property var secondmodel: {
+        var languages = []
+        try {
+            languages = JSON.parse(cfg_languages)
+        } catch (e) {
+        }
+        return languages.map(function(l) { return { label: l.lang, value: l.code } })
     }
 
     // Properties injected by Plasma config system
@@ -61,6 +68,9 @@ Item {
     property int cfg_mode
     property int cfg_modeDefault
     property string title: i18n("General")
+    // Width of the widest label left of the engine and language menus, so the menus line up
+    property real labelWidth: Math.max(engineLabel.implicitWidth, nativeLabel.implicitWidth,
+                                       secondLabel.implicitWidth)
     // Column widths shared between header and delegates
     property real col0Width: 40
     property real col3Width: 80
@@ -440,6 +450,8 @@ Item {
             Layout.fillWidth: true
             width: parent.width
             QQC2.Label {
+                id: engineLabel
+                Layout.preferredWidth: configGeneral.labelWidth
                 text: i18n("Translate engine:")
             }
             QQC2.ComboBox {
@@ -472,6 +484,7 @@ Item {
             QQC2.CheckBox {
                 id: autosource
                 Layout.alignment: Qt.AlignRight
+                Layout.rightMargin: Kirigami.Units.gridUnit
                 text: i18n("Autodetect source")
                 checked: cfg_autodetect
                 onClicked: {
@@ -482,6 +495,8 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             QQC2.Label {
+                id: nativeLabel
+                Layout.preferredWidth: configGeneral.labelWidth
                 text: i18n("Native language:")
             }
             QQC2.ComboBox {
@@ -501,7 +516,39 @@ Item {
                     return 0
                 }
                 onActivated: configGeneral.cfg_nativeLanguage = currentValue
-                QQC2.ToolTip.text: i18n("The selection shortcut translates texts into this language, or into the widget's target language when they are already in it.")
+                QQC2.ToolTip.text: i18n("The selection shortcut and the Auto destination translate texts into this language. Texts already in it go into the widget's target language, or into the second language with Auto.")
+                QQC2.ToolTip.visible: hovered
+                QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
+            Item {
+                Layout.fillWidth: true
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            QQC2.Label {
+                id: secondLabel
+                Layout.preferredWidth: configGeneral.labelWidth
+                text: i18n("Second language:")
+            }
+            QQC2.ComboBox {
+                id: secondLanguage
+                model: configGeneral.secondmodel
+                textRole: "label"
+                valueRole: "value"
+                implicitContentWidthPolicy: QQC2.ComboBox.WidestText
+                wheelEnabled: false
+                currentIndex: {
+                    var list = configGeneral.secondmodel
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].value === configGeneral.cfg_secondLanguage) {
+                            return i
+                        }
+                    }
+                    return -1
+                }
+                onActivated: configGeneral.cfg_secondLanguage = currentValue
+                QQC2.ToolTip.text: i18n("With the Auto destination, texts already in the native language are translated into this one.")
                 QQC2.ToolTip.visible: hovered
                 QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
             }

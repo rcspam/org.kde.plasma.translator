@@ -28,6 +28,10 @@ Item {
     property int cfg_destinationIndexDefault
     property int cfg_mode
     property int cfg_modeDefault
+    property string cfg_nativeLanguage
+    property string cfg_nativeLanguageDefault
+    property string cfg_secondLanguage
+    property string cfg_secondLanguageDefault
     property string title: i18n("Servers")
 
     // Edited in place; cfg_servers holds its JSON for saving. Form fields are
