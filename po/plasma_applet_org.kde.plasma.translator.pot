@@ -1,0 +1,374 @@
+# Translation template of the Translator Plasma widget.
+# Copyright (C) 2026 rcspam
+# This file is distributed under the same license as the org.kde.plasma.translator package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: org.kde.plasma.translator 6.1.4\n"
+"Report-Msgid-Bugs-To: https://github.com/rcspam/org.kde.plasma.translator/"
+"issues\n"
+"POT-Creation-Date: 2026-09-30 20:29+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: contents/ui/config/configGeneral.qml:45
+msgid "System language (%1)"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:70
+msgid "General"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:317
+msgid "Update is available"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:345
+msgid "Update finished. Please restart the session."
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:371
+msgid ""
+"Update failed. Make sure that the widget is install in user's home directory."
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:422
+msgid "Update"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:435
+msgid "Changelog"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:455
+msgid "Translate engine:"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:488
+msgid "Autodetect source"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:500
+msgid "Native language:"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:519
+msgid ""
+"The selection shortcut and the Auto destination translate texts into this "
+"language. Texts already in it go into the widget's target language, or into "
+"the second language with Auto."
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:532
+msgid "Second language:"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:551
+msgid ""
+"With the Auto destination, texts already in the native language are "
+"translated into this one."
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:565 contents/ui/main.qml:950
+msgid "Please make sure that at least one language is selected."
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:566 contents/ui/main.qml:951
+msgid "Please make sure that at least two languages are selected."
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:571
+msgid "Filter..."
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:609
+msgid "Name"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:618
+msgid "Native Name"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:627
+msgid "Code"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:749
+msgid "Uncheck all"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:749
+msgid "Check all"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:784
+msgid "Move up"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:806
+msgid "Move down"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:909
+msgid "Updating..."
+msgstr ""
+
+#: contents/ui/config/configServers.qml:35
+msgid "Servers"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:79
+msgid "LLM (OpenAI-compatible: Ollama, LM Studio…)"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:81
+msgid "Custom"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:236
+msgid "All languages"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:237
+msgid "Unknown until the server answers. Press Test."
+msgstr ""
+
+#: contents/ui/config/configServers.qml:242
+msgid "%1 language"
+msgid_plural "%1 languages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/ui/config/configServers.qml:275
+msgid "It works: %1"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:292
+msgid "Translation servers added here appear as engines in the General tab."
+msgstr ""
+
+#: contents/ui/config/configServers.qml:332
+msgid "No server yet"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:339
+msgid "Add"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:344
+msgid "Remove"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:370
+msgid "Name:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:379
+msgid "Type:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:393
+msgid "URL:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:393
+msgid "Address:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:406
+msgid "Token:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:406
+msgid "API key:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:411
+msgid "Required"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:411
+msgid "Optional"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:417
+msgid "Model:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:438
+msgid "Installed models"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:444
+msgid "Instructions:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:466
+msgid ""
+"Placeholders: {text} {source_name} {source_code} {target_name} "
+"{target_code}. Without {text}, the text is added at the end."
+msgstr ""
+
+#: contents/ui/config/configServers.qml:471
+msgid "Method:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:486
+msgid "Headers:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:500
+msgid "Body:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:516
+msgid "Result path:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:535
+msgid ""
+"Placeholders: {text} {source} {target} {source_name} {target_name} "
+"{api_key}. Leave the result path empty when the server answers with plain "
+"text."
+msgstr ""
+
+#: contents/ui/config/configServers.qml:540
+msgid "Languages:"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:556
+msgid "Test"
+msgstr ""
+
+#: contents/ui/config/configServers.qml:570
+msgid "Testing…"
+msgstr ""
+
+#: contents/ui/main.qml:31 contents/ui/main.qml:453 contents/ui/main.qml:638
+#: contents/ui/main.qml:893
+msgid "Autodetect"
+msgstr ""
+
+#: contents/ui/main.qml:40
+msgid "Auto (%1 / %2)"
+msgstr ""
+
+#: contents/ui/main.qml:82
+msgid "Translator"
+msgstr ""
+
+#: contents/ui/main.qml:106 contents/ui/main.qml:736
+msgid "Destination"
+msgstr ""
+
+#: contents/ui/main.qml:128
+msgid "Copy"
+msgstr ""
+
+#: contents/ui/main.qml:299 contents/ui/main.qml:316
+msgid "Unable to translate."
+msgstr ""
+
+#: contents/ui/main.qml:514
+msgid "Reading the selected text needs %1, which is not installed."
+msgstr ""
+
+#: contents/ui/main.qml:591
+msgid "Source"
+msgstr ""
+
+#: contents/ui/main.qml:619
+msgid "Clear all (Esc)"
+msgstr ""
+
+#: contents/ui/main.qml:668 contents/ui/main.qml:806
+msgid "Listen"
+msgstr ""
+
+#: contents/ui/main.qml:683
+msgid "Paste (Ctrl+V)"
+msgstr ""
+
+#: contents/ui/main.qml:711
+msgid "Swap panels (CTRL+S)"
+msgstr ""
+
+#: contents/ui/main.qml:761
+msgid "Pin window (CTRL+P)"
+msgstr ""
+
+#: contents/ui/main.qml:819
+msgid "Copy (Ctrl+C)"
+msgstr ""
+
+#: contents/ui/main.qml:832
+msgid "Translate"
+msgstr ""
+
+#: contents/ui/main.qml:841
+msgid "Translate (CTRL+Enter)"
+msgstr ""
+
+#: contents/ui/main.qml:958
+msgid "Settings"
+msgstr ""
+
+#: contents/ui/main.qml:970
+msgid "Please install translate-shell package and reboot or relog."
+msgstr ""
+
+#: contents/ui/main.qml:977
+msgid "How to install"
+msgstr ""
+
+#: contents/ui/ServerClient.qml:56
+msgid "Cannot reach the server at %1."
+msgstr ""
+
+#: contents/ui/ServerClient.qml:58
+msgid "The server at %1 did not answer in time."
+msgstr ""
+
+#: contents/ui/ServerClient.qml:60
+msgid "The server refused the API key: %1"
+msgstr ""
+
+#: contents/ui/ServerClient.qml:61
+msgid "The server refused the API key."
+msgstr ""
+
+#: contents/ui/ServerClient.qml:63
+msgid "Server error: %1"
+msgstr ""
+
+#: contents/ui/ServerClient.qml:65
+msgid "Unexpected answer from the server: %1"
+msgstr ""
+
+#: contents/ui/ServerClient.qml:67
+msgid "This server no longer exists. Choose another engine in the settings."
+msgstr ""
+
+#: contents/ui/ServerClient.qml:70
+msgid "The server address is missing."
+msgstr ""
+
+#: contents/ui/ServerClient.qml:73
+msgid "The API key is missing."
+msgstr ""
+
+#: contents/ui/ServerClient.qml:76
+msgid "The model name is missing."
+msgstr ""
+
+#: contents/ui/ServerClient.qml:79
+msgid "Unknown error: %1"
+msgstr ""

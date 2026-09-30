@@ -635,7 +635,7 @@ PlasmoidItem {
                                 // A new text needs a new detection
                                 root.indlang = false
                                 if (this.text.length == 0) {
-                                    var copy = ["Autodetect"]
+                                    var copy = [i18n("Autodetect")]
                                     root.detectlist = copy
                                 }
                             }
@@ -890,7 +890,7 @@ PlasmoidItem {
                     leftPanel.remove(0, leftPanel.text.length)
                     rightPanel.remove(0, rightPanel.text.length)
                     if (root.cfg_autodetect) {
-                        var copy = ["Autodetect"]
+                        var copy = [i18n("Autodetect")]
                         root.detectlist = copy
                     }
                     leftPanel.focus = true
