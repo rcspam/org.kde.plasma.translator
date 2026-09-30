@@ -1,12 +1,14 @@
-# Translator - KDE Plasma 6 Widget
+#  ![Translator Widget](contents/images/icon.svg) Translator - KDE Plasma 6 Widget
 
-A Plasma 6 desktop widget that provides a graphical interface for translating text, powered by [translate-shell](https://github.com/soimort/translate-shell).
+A Plasma 6 desktop widget that provides a graphical interface for translating text.
 
-This is a **port to Plasma 6 / KDE 6** of the original [Translator widget](https://www.pling.com/p/1395666/) created by **Driglu4it** for Plasma 5.
+This is a **port to Plasma 6 / KDE 6** of the original [Translator widget](https://www.pling.com/p/1395666/) created by **Driglu4it** for Plasma 5, which has not been updated since 2021.
 
-Ported by **rcspam**.
+It works globally as the old version with translate-shell.
 
-![Translator Widget](contents/images/icon.svg)
+But it can now also translates **fully offline** with  different servers like  [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) , a free translation server running on your own machine, or local LLM Servers (Ollama, LM Studio)  Your text never leaves your computer.
+
+
 
 ## Features
 
