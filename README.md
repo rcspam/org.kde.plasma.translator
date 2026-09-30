@@ -1,20 +1,20 @@
-#  ![Translator Widget](contents/images/icon.svg) Translator - KDE Plasma 6 Widget
+# ![Translator Widget](contents/images/icon.svg) Translator - KDE Plasma 6 Widget
 
 A Plasma 6 desktop widget that provides a graphical interface for translating text.
 
 This is a **port to Plasma 6 / KDE 6** of the original [Translator widget](https://www.pling.com/p/1395666/) created by **Driglu4it** for Plasma 5, which has not been updated since 2021.
 
-It works globally as the old version with translate-shell.
+It still works like the original, with translate-shell (Google, Yandex, Bing, Apertium).
 
-But it can now also translates **fully offline** with  different servers like  [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) , a free translation server running on your own machine, or local LLM Servers (Ollama, LM Studio)  Your text never leaves your computer.
+But it can now also translate **fully offline** with your own servers: [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate), a free translation server running on your own machine, or a local LLM server (Ollama, LM Studio). Your text never leaves your computer.
 
-
+![Translator](screenshot.png)
 
 ## Features
 
+- Translate **fully offline** with your own servers: LibreTranslate, or LLMs through Ollama or LM Studio (see below)
+- Online services too: **Google**, **Yandex**, **Bing** and **Apertium** through translate-shell, DeepL, or any OpenAI-compatible API
 - Translate text between 160+ languages
-- Multiple translation engines: **Google**, **Yandex**, **Bing**, **Apertium**
-- Your own translation servers, local or online: LibreTranslate, DeepL, LLMs through Ollama or any OpenAI-compatible API (see below)
 - Translate the text selected in any window with a global shortcut, in the right direction
 - Auto-detect source language
 - Auto destination: into your native language, or into a second language for texts already in yours
@@ -28,7 +28,7 @@ But it can now also translates **fully offline** with  different servers like  [
 ## Requirements
 
 - **KDE Plasma 6**
-- **translate-shell** (`trans`) package
+- **translate-shell** (`trans`), only for the Google, Yandex, Bing and Apertium engines and for pronunciation. Not needed if you only use your own servers.
 
 ### Install translate-shell
 
@@ -46,7 +46,7 @@ sudo dnf install translate-shell
 sudo zypper install translate-shell
 ```
 
-translate-shell is not needed to translate with your own servers, only for the built-in engines and for pronunciation.
+## Usage
 
 ### Translate the selected text
 
@@ -109,7 +109,15 @@ The same type works with LM Studio, or with online APIs such as OpenAI, Mistral 
 
 ## Installation
 
+### From Discover or the KDE Store
+
+Right click on the desktop or a panel > **Add or Manage Widgets** > **Get New Widgets** > **Download New Plasma Widgets**, then search for "Translator". Pick the one by **rcspam** (version 6.x): the Plasma 5 widget by Driglu4it (0.8) shows up too and does not work on Plasma 6.
+
+The widget is also on the [KDE Store](https://store.kde.org/p/2350395). Once installed this way, Discover shows its updates.
+
 ### From .plasmoid file
+
+Download `org.kde.plasma.translator.plasmoid` from the [latest release](https://github.com/rcspam/org.kde.plasma.translator/releases/latest), then:
 
 ```bash
 kpackagetool6 -t Plasma/Applet -i org.kde.plasma.translator.plasmoid
