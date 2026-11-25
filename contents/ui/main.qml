@@ -60,15 +60,10 @@ PlasmoidItem {
     property bool showSource: false
     // Collapsed until the user opens it, including on each new selection
     property bool sourceExpanded: false
-    // Language of that text, when the engine reports one
+    // Language of that text. Empty means Autodetect
     property string popupSourceCode: ""
-    readonly property string popupSourceName: {
-        var code = popupSourceCode
-        if (code.length === 0) {
-            return ""
-        }
-        return langName(code) || langName(code.split("-")[0]) || code
-    }
+    // True after a choice in the popup. A new selection goes back to Autodetect
+    property bool popupSourceLocked: false
     property string tmpfolder: StandardPaths.writableLocation(
                                    StandardPaths.TempLocation).toString(
                                    ).replace("file://", "")
@@ -135,14 +130,25 @@ PlasmoidItem {
                     }
                 }
                 ComboBox3 {
-                    enabled: false
+                    id: sourceLanguage
                     editable: true
-                    model: [root.popupSourceName]
-                    currentIndex: 0
+                    model: [i18n("Autodetect")].concat(root.langlist)
+                    Layout.fillWidth: true
                     Layout.minimumWidth: Kirigami.Units.gridUnit * 6
-                    Layout.preferredWidth: implicitWidth
                     Layout.maximumWidth: Math.round(parent.width * 0.5)
                     Layout.alignment: Qt.AlignVCenter
+                    onModelChanged: currentIndex = root.popupSourceListIndex(root.popupSourceCode)
+                    // A choice is kept for this text. Autodetect lets the engine decide again
+                    onActivated: function(index) {
+                        if (index <= 0) {
+                            root.popupSourceLocked = false
+                            root.popupSourceCode = ""
+                        } else {
+                            root.popupSourceLocked = true
+                            root.popupSourceCode = root.codelist[index - 1]
+                        }
+                        root.retranslatePopupSource()
+                    }
                 }
                 PlasmaComponents.Label {
                     visible: !root.sourceExpanded
@@ -494,7 +500,29 @@ PlasmoidItem {
         root.showSource = false
         root.sourceExpanded = false
         root.sourceText = ""
+        root.popupSourceLocked = false
         root.popupSourceCode = ""
+    }
+
+    // Index in the popup's source menu: 0 is Autodetect
+    function popupSourceListIndex(code) {
+        if (!code) {
+            return 0
+        }
+        var i = root.codelist.indexOf(code)
+        if (i === -1) {
+            i = root.codelist.indexOf(code.split("-")[0])
+        }
+        return i === -1 ? 0 : i + 1
+    }
+
+    // The menu writes its own index. Follow the detected or chosen language,
+    // including when a new selection returns to Autodetect
+    onPopupSourceCodeChanged: {
+        var index = popupSourceListIndex(popupSourceCode)
+        if (sourceLanguage.currentIndex !== index) {
+            sourceLanguage.currentIndex = index
+        }
     }
 
     // Keep the field in sync when the selection is replaced. Typing updates
@@ -528,6 +556,7 @@ PlasmoidItem {
         // LLMs take a few seconds: open the window at once
         var request = ++root.selectionRequest
         // After the request id changes, a detection still in flight cannot write its language back
+        root.popupSourceLocked = false
         root.popupSourceCode = ""
         showSelectionWindow("")
         root.selectionBusy = true
@@ -548,18 +577,24 @@ PlasmoidItem {
         }
         var langs = popupLanguages()
         var request = ++root.selectionRequest
-        root.popupSourceCode = ""
+        // A chosen language stays. Autodetect is worked out again for the edited text
+        if (!root.popupSourceLocked) {
+            root.popupSourceCode = ""
+        }
+        var source = root.popupSourceLocked ? root.popupSourceCode : "auto"
         root.selectionBusy = true
         showSelectionWindow("")
-        identifyPopupSource(text, request)
-        translateOrOther(text, "auto", langs.target, langs.other, function(output, used, ok, detected) {
+        if (!root.popupSourceLocked) {
+            identifyPopupSource(text, request)
+        }
+        translateOrOther(text, source, langs.target, langs.other, function(output, used, ok, detected) {
             showTranslation(output, used, request, detected)
         })
     }
 
     // trans -identify for the built-in engines. Servers report the language with the translation
     function identifyPopupSource(text, request) {
-        if (root.usesServer) {
+        if (root.usesServer || root.popupSourceLocked) {
             return
         }
         runner.run("trans -identify -no-ansi -- " + Shell.quote(text), function(stdout) {
@@ -599,7 +634,7 @@ PlasmoidItem {
             root.expanded = true
             return
         }
-        if (detected) {
+        if (detected && !root.popupSourceLocked) {
             root.popupSourceCode = detected
         }
         destinationpopup.currentIndex = root.codelist.indexOf(target)
