@@ -163,7 +163,7 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 
 ## Changelog
 
-### Unreleased
+### 6.2.0
 
 - New: the selection window shows the text that was translated, with its language. Expand **Source** to edit the text and translate again, or to choose the source language.
 - Google and Bing give the source language with the translation: no separate detection request any more.
