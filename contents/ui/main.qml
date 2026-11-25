@@ -48,6 +48,11 @@ PlasmoidItem {
     property string cfg_engine: plasmoid.configuration.engine
     // True when the engine is a user-defined server instead of translate-shell
     readonly property bool usesServer: Servers.isServerEngine(cfg_engine)
+    // The translation names its source language: no trans -identify needed.
+    // Yandex is not reliable here, Apertium cannot detect
+    readonly property bool reportsSource: usesServer || cfg_engine === "google" || cfg_engine === "bing"
+    // Language codes by endonym, read once from trans -list-all (no network)
+    property var endonymCodes: ({})
     property bool cfg_autodetect: plasmoid.configuration.autodetect
     property bool indlang: false
     property bool pins: false
@@ -84,6 +89,7 @@ PlasmoidItem {
         color: Kirigami.Theme.backgroundColor
         onClosing: {
             windowtext = ""
+            root.popupHasSource = false
             root.selectionBusy = false
             root.selectionRequest++ // drops the translation still running
             root.clearSelection()
@@ -97,6 +103,63 @@ PlasmoidItem {
             anchors.top: parent.top
             anchors.topMargin: Kirigami.Units.smallSpacing
             anchors.bottom: parent.bottom
+            // The text that was translated, on one line until Source is expanded
+            RowLayout {
+                visible: root.popupHasSource
+                Layout.fillWidth: true
+                PlasmaComponents.ToolButton {
+                    icon.name: root.sourceExpanded ? "arrow-down" : "arrow-right"
+                    text: i18n("Source")
+                    onClicked: root.sourceExpanded = !root.sourceExpanded
+                }
+                ComboBox3 {
+                    // Not greyed out, like the Destination menu
+                    editable: true
+                    // Entry 0 is Autodetect, named after the detected language
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                    model: [root.popupDetected || i18n("Autodetect")].concat(root.langlist)
+                    currentIndex: root.popupSourceIndex
+                    onActivated: function(index) {
+                        root.popupSourceIndex = index
+                        translatePopup()
+                    }
+                }
+                PlasmaComponents.Label {
+                    visible: !root.sourceExpanded
+                    Layout.fillWidth: true
+                    text: sourcearea.text
+                    color: Kirigami.Theme.disabledTextColor
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: root.sourceExpanded = true
+                    }
+                }
+                Item {
+                    visible: root.sourceExpanded
+                    Layout.fillWidth: true
+                }
+                PlasmaComponents.ToolButton {
+                    visible: root.sourceExpanded
+                    icon.name: "globe"
+                    text: i18n("Translate")
+                    enabled: sourcearea.text.length > 0 && !root.selectionBusy
+                    onClicked: translatePopup()
+                    QQC2.ToolTip.text: i18n("Translate (CTRL+Enter)")
+                    QQC2.ToolTip.visible: hovered
+                }
+            }
+            PlasmaComponents.ScrollView {
+                visible: root.popupHasSource && root.sourceExpanded
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 4
+                QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+                PlasmaComponents.TextArea {
+                    id: sourcearea
+                    wrapMode: Text.Wrap
+                }
+            }
             RowLayout {
                 Layout.minimumWidth: parent.width
                 width: parent.width
@@ -114,17 +177,22 @@ PlasmoidItem {
                     model: root.langlist
                     currentIndex: root.codelist.indexOf(nativeCode())
                     // Only a choice made here is kept for the next texts: the
-                    // index also changes to show the language a text went to
+                    // index also changes to show the language a text went to.
+                    // The text shown in Source is translated again, edits included
                     onActivated: function(index) {
                         root.popupIndex = index
-                        falsetime.start()
+                        if (root.popupHasSource) {
+                            translatePopup()
+                        } else {
+                            falsetime.start()
+                        }
                     }
                 }
                 PlasmaComponents.ToolButton {
                     Layout.fillWidth: false
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     icon.name: "edit-copy"
-                    enabled: windowarea.focus
+                    enabled: windowarea.text.length > 0
                     QQC2.ToolTip.text: i18n("Copy")
                     QQC2.ToolTip.visible: hovered
                     onClicked: {
@@ -167,6 +235,14 @@ PlasmoidItem {
             onTriggered: {
                 info.close()
             }
+        }
+        QQC2.Action {
+            shortcut: "Ctrl+Return"
+            onTriggered: translatePopup()
+        }
+        QQC2.Action {
+            shortcut: "Ctrl+Enter"
+            onTriggered: translatePopup()
         }
     }
 
@@ -359,6 +435,13 @@ PlasmoidItem {
     property bool selectionToolFound: true
     // A selected text is being translated: the window is open, empty, with a spinner
     property bool selectionBusy: false
+    // The popup shows a translation, with its text in Source (not a message)
+    property bool popupHasSource: false
+    property bool sourceExpanded: false
+    // Popup source menu: 0 is Autodetect, else codelist index + 1
+    property int popupSourceIndex: 0
+    // Name of the language detected for the popup's text, "" when unknown
+    property string popupDetected: ""
     // Only the answer to the latest request is shown
     property int selectionRequest: 0
 
@@ -384,15 +467,36 @@ PlasmoidItem {
             root.expanded = true
             return
         }
+        sourcearea.text = text
+        root.popupHasSource = true
+        root.sourceExpanded = false
+        root.popupSourceIndex = 0
+        translatePopup()
+    }
+
+    // Translates the text in the popup's Source field, as the user may have
+    // edited it, from the language chosen in its menu
+    function translatePopup() {
+        var text = sourcearea.text
+        if (!root.popupHasSource || text.length === 0) {
+            return
+        }
         var nativeLang = nativeCode()
         var popup = root.popupIndex == -1 ? nativeLang : root.codelist[root.popupIndex]
         var favorite = root.autoDestination ? secondCode() : root.codelist[root.destinationIndex] || popup
+        var source = root.popupSourceIndex > 0 ? root.codelist[root.popupSourceIndex - 1] : "auto"
+        if (source === "auto") {
+            root.popupDetected = ""
+        }
         // LLMs take a few seconds: open the window at once
         var request = ++root.selectionRequest
         showSelectionWindow("")
         root.selectionBusy = true
-        translateOrOther(text, "auto", popup, Lang.otherTarget(popup, favorite, nativeLang),
-                         function(output, used) {
+        translateOrOther(text, source, popup, Lang.otherTarget(popup, favorite, nativeLang),
+                         function(output, used, ok, detected) {
+            if (request === root.selectionRequest && detected) {
+                root.popupDetected = langName(detected) || langName(detected.split("-")[0]) || detected
+            }
             showTranslation(output, used, request)
         })
     }
@@ -427,8 +531,9 @@ PlasmoidItem {
     }
 
     // Same call for every engine: done(output, ok, detected), output being the
-    // translation, or the error to show when ok is false. Only servers report
-    // the detected source language. source is a code or "auto".
+    // translation, or the error to show when ok is false. detected is the
+    // source language when the engine reports it (reportsSource) and source
+    // is "auto". source is a code or "auto".
     function translateTo(text, source, target, done) {
         if (root.usesServer) {
             translateWithServer(text, source, target, function(result, server) {
@@ -438,10 +543,16 @@ PlasmoidItem {
             return
         }
         var from = source === "auto" ? "" : source
-        runner.run("trans " + from + ":" + target + " -brief -e " + root.cfg_engine + " -no-bidi -- "
+        // -brief without the languages line, which names the source language
+        runner.run("trans " + from + ":" + target + " -e " + root.cfg_engine + " -no-bidi -no-ansi"
+                   + " -show-original n -show-original-phonetics n -show-translation-phonetics n"
+                   + " -show-prompt-message n -show-languages y -show-original-dictionary n"
+                   + " -show-dictionary n -show-alternatives n -- "
                    + Shell.quote(text), function(stdout, stderr) {
-            var output = stdout.trim()
-            done(output || stderr.trim(), output.length > 0)
+            var result = Lang.splitLanguages(stdout)
+            var detected = source === "auto" && root.reportsSource
+                    ? root.endonymCodes[result.source] || "" : ""
+            done(result.text || stderr.trim(), result.text.length > 0, detected)
         })
     }
 
@@ -465,6 +576,9 @@ PlasmoidItem {
         root.destinationIndex = plasmoid.configuration.destinationIndex
         checkPackage()
         clearSelection()
+        runner.run("trans -list-all", function(stdout) {
+            root.endonymCodes = Lang.endonymCodes(stdout || "")
+        })
     }
 
     Connections {
@@ -511,6 +625,7 @@ PlasmoidItem {
         onTriggered: {
             root.expanded = false
             if (!root.selectionToolFound) {
+                root.popupHasSource = false
                 showSelectionWindow(i18n("Reading the selected text needs %1, which is not installed.",
                                          root.selectionPackage))
                 return
@@ -855,9 +970,9 @@ PlasmoidItem {
                         root.righttext = ""
                         root.lefttext = leftPanel.text
                         translate()
-                        // Servers report the detected language with the translation
+                        // Servers, Google and Bing report the detected language with the translation
                         if (root.cfg_autodetect == true
-                                && root.indlang == false && !root.usesServer) {
+                                && root.indlang == false && !root.reportsSource) {
                             detectsource()
                         }
                     }
@@ -874,9 +989,9 @@ PlasmoidItem {
                         root.righttext = ""
                         root.lefttext = leftPanel.text
                         translate()
-                        // Servers report the detected language with the translation
+                        // Servers, Google and Bing report the detected language with the translation
                         if (root.cfg_autodetect == true
-                                && root.indlang == false && !root.usesServer) {
+                                && root.indlang == false && !root.reportsSource) {
                             detectsource()
                         }
                     }

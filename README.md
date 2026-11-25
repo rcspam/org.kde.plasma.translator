@@ -57,7 +57,7 @@ Give the widget a global shortcut (right click > Configure > Keyboard Shortcuts)
 
 Your native language is the system language unless you pick another one in the settings (**General** > **Native language**), for example when your desktop is in English or in a language you are learning.
 
-The **Destination** menu of that window picks another language by hand. This needs **wl-clipboard** on Wayland, or **xsel** on X11 (package names are the same on the distributions above).
+At the top of that window, **Source** shows the text that was translated and its language. Expand it to edit the text and translate again (**Translate** or `Ctrl+Enter`), or pick the source language when the detection got it wrong. The **Destination** menu of that window picks another language by hand and translates the text shown in **Source**. Reading the selection needs **wl-clipboard** on Wayland, or **xsel** on X11 (package names are the same on the distributions above).
 
 ### Auto destination
 
@@ -161,6 +161,11 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 | `Esc`        | Clear all text    |
 
 ## Changelog
+
+### Unreleased
+
+- New: the selection window shows the text that was translated, with its language. Expand **Source** to edit the text and translate again, or to choose the source language.
+- Google and Bing give the source language with the translation: no separate detection request any more.
 
 ### 6.1.4
 

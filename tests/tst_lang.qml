@@ -76,6 +76,42 @@ TestCase {
         compare(Lang.identifiedCode(row.output), row.expected)
     }
 
+    // trans with -show-languages: the translation, then "[ source -> target ]"
+    function test_splitLanguages_data() {
+        return [
+            { tag: "one line", output: "Salut\n\n[ Русский -> Français ]\n",
+              text: "Salut", source: "Русский" },
+            { tag: "several paragraphs", output: "Bonjour.\n\nComment vas-tu?\nBien.\n\n[ English -> Français ]",
+              text: "Bonjour.\n\nComment vas-tu?\nBien.", source: "English" },
+            { tag: "endonym with a space", output: "Hello\n\n[ Français canadien -> English ]\n",
+              text: "Hello", source: "Français canadien" },
+            { tag: "no translation, only the languages", output: "[ English -> Français ]\n",
+              text: "", source: "English" },
+            { tag: "no languages line", output: "Salut\n", text: "Salut", source: "" },
+            { tag: "empty", output: "", text: "", source: "" },
+        ]
+    }
+    function test_splitLanguages(row) {
+        var result = Lang.splitLanguages(row.output)
+        compare(result.text, row.text)
+        compare(result.source, row.source)
+    }
+
+    // Lines of trans -list-all: code, English name, endonym
+    function test_endonymCodes() {
+        var codes = Lang.endonymCodes(
+            "af         Afrikaans                      Afrikaans\n"
+            + "zh-CN      Chinese (Simplified)           简体中文\n"
+            + "fr-CA      French (Canadian)              Français canadien\n"
+            + "ru         Russian                        Русский\n")
+        compare(codes["Afrikaans"], "af")
+        compare(codes["简体中文"], "zh-CN")
+        compare(codes["Français canadien"], "fr-CA")
+        compare(codes["Русский"], "ru")
+        compare(Object.keys(codes).length, 4)
+        compare(Object.keys(Lang.endonymCodes("")).length, 0)
+    }
+
     // Auto destination, native language "ru", second language "en"
     function test_autoTarget_data() {
         return [

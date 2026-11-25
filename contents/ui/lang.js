@@ -20,6 +20,30 @@ function identifiedCode(output) {
     return match ? match[1] : ""
 }
 
+// Output of trans with -show-languages: the translation, then a last line
+// "[ Русский -> Français ]". source is the name of the source language in
+// that language (see endonymCodes), "" when the line is missing.
+function splitLanguages(output) {
+    var match = output.match(/^([\s\S]*?)\s*\[ (.+) -> .+ \]\s*$/)
+    if (!match) {
+        return { text: output.trim(), source: "" }
+    }
+    return { text: match[1].trim(), source: match[2] }
+}
+
+// Language codes by name in the language itself, from trans -list-all
+// ("ru         Russian                        Русский")
+function endonymCodes(listAll) {
+    var codes = {}
+    listAll.split("\n").forEach(function(line) {
+        var match = line.match(/^(\S+)\s{2,}.*?\s{2,}(\S.*?)\s*$/)
+        if (match) {
+            codes[match[2]] = match[1]
+        }
+    })
+    return codes
+}
+
 // Splits on spaces, digits and punctuation (QML's JavaScript has no \p{L}).
 // Typographic quotes, dashes and CJK punctuation included.
 var separators = /[\s0-9.,;:!?'"()\[\]{}<>\/\\|@#$%^&*+=_~`¡«»¿\u2013\u2014‘’“”…、。！（），：；？-]+/
