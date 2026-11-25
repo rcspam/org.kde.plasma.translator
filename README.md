@@ -1,4 +1,4 @@
-# ![Translator Widget](contents/images/icon.svg) Translator - KDE Plasma 6 Widget
+# ![Translator Widget](contents/images/icon.svg) Translator - KDE Plasma 6 Widget offline translator
 
 A Plasma 6 desktop widget that provides a graphical interface for translating text.
 
