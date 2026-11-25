@@ -14,6 +14,7 @@ import ".."
 import "servers/servers.js" as Servers
 import "shell.js" as Shell
 import "lang.js" as Lang
+import "shortcut.js" as Shortcut
 
 PlasmoidItem {
     id: root
@@ -66,6 +67,18 @@ PlasmoidItem {
     property bool cfg_dictionary: plasmoid.configuration.dictionary
     property bool cfg_keepAbove: plasmoid.configuration.keepAbove
     onCfg_keepAboveChanged: updateKeepAbove()
+    // Second global shortcut. The activation shortcut translates the selection.
+    property string cfg_openShortcut: plasmoid.configuration.openShortcut
+    onCfg_openShortcutChanged: updateOpenShortcut()
+    // The open shortcut bumps this. The value at startup must not open the widget.
+    property int openRequestSeen: 0
+    property bool openRequestReady: false
+    // Last values the change handlers applied. Bumping openRequest reloads the
+    // whole config group, and these handlers would otherwise run again.
+    property string appliedLanguages: ""
+    property string appliedEngine: ""
+    property string appliedServers: ""
+    signal openRequested()
     property string tmpfolder: StandardPaths.writableLocation(
                                    StandardPaths.TempLocation).toString(
                                    ).replace("file://", "")
@@ -606,6 +619,36 @@ PlasmoidItem {
             root.endonymCodes = Lang.endonymCodes(stdout || "")
         })
         updateKeepAbove()
+        root.noteOpenRequest()
+        root.appliedLanguages = plasmoid.configuration.languages
+        root.appliedEngine = plasmoid.configuration.engine
+        root.appliedServers = plasmoid.configuration.servers
+        root.openRequestReady = true
+        updateOpenShortcut()
+    }
+
+    function noteOpenRequest() {
+        root.openRequestSeen = plasmoid.configuration.openRequest
+    }
+
+    // Same result as clicking the icon: the widget is open and the input has
+    // the cursor. Clicking toggles; this only opens. Already open, it focuses
+    // the input again.
+    function openAndFocus() {
+        root.expanded = true
+        root.openRequested()
+    }
+
+    // Plasmashell can register one activation shortcut, and that one translates
+    // the selection. KWin registers this second shortcut and, when it is
+    // pressed, bumps openRequest on this applet. Without KWin, nothing happens.
+    function updateOpenShortcut() {
+        if (!runner) {
+            return
+        }
+        var file = root.tmpfolder + "/" + Shortcut.actionName(plasmoid.id) + ".js"
+        runner.run(Shortcut.syncCommand(plasmoid.id, root.cfg_openShortcut,
+                                        i18n("Open Translator"), file), function() {})
     }
 
     // Keeps the selection window above the others. Qt does not pass
@@ -631,6 +674,11 @@ PlasmoidItem {
     Connections {
         target: plasmoid.configuration
         function onLanguagesChanged() {
+            var next = plasmoid.configuration.languages
+            if (next === root.appliedLanguages) {
+                return
+            }
+            root.appliedLanguages = next
             loadLangModel()
             root.sourceIndex = 0
             if (!root.autoDestination) {
@@ -638,10 +686,27 @@ PlasmoidItem {
             }
         }
         function onEngineChanged() {
+            var next = plasmoid.configuration.engine
+            if (next === root.appliedEngine) {
+                return
+            }
+            root.appliedEngine = next
             reloadKeepingSelection()
         }
         function onServersChanged() {
+            var next = plasmoid.configuration.servers
+            if (next === root.appliedServers) {
+                return
+            }
+            root.appliedServers = next
             reloadKeepingSelection()
+        }
+        function onOpenRequestChanged() {
+            if (!root.openRequestReady || plasmoid.configuration.openRequest === root.openRequestSeen) {
+                return
+            }
+            root.noteOpenRequest()
+            root.openAndFocus()
         }
     }
 
@@ -718,6 +783,19 @@ PlasmoidItem {
                     checkPackage()
                     time.start()
                 }
+            }
+            // Already expanded: onExpandedChanged does not run again. The open
+            // shortcut still moves the cursor into the input.
+            function onOpenRequested() {
+                checkPackage()
+                time.start()
+            }
+        }
+        // The representation is created when the widget opens. That can happen
+        // after expanded has already changed, so the signal above is missed.
+        Component.onCompleted: {
+            if (root.expanded) {
+                time.start()
             }
         }
 

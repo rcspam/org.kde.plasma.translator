@@ -171,6 +171,14 @@
     <label>Keep the selection window above other windows</label>
     <default>true</default>
   </entry>
+  <entry name="openShortcut" type="String">
+    <label>Shortcut that opens the widget and focuses the input (empty: none)</label>
+    <default></default>
+  </entry>
+  <entry name="openRequest" type="Int">
+    <label>Bumped by the open shortcut so the widget opens and focuses the input</label>
+    <default>0</default>
+  </entry>
   <entry name="servers" type="String">
     <label>User-defined translation servers (JSON array)</label>
     <default>[]</default>

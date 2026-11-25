@@ -16,6 +16,7 @@ But it can now also translate **fully offline** with your own servers: [LibreTra
 - Online services too: **Google**, **Yandex**, **Bing** and **Apertium** through translate-shell, DeepL, or any OpenAI-compatible API
 - Translate text between 160+ languages
 - Translate the text selected in any window with a global shortcut, in the right direction
+- Open the widget with a second global shortcut and focus the input, the same as clicking the icon
 - Auto-detect source language
 - Auto destination: into your native language, or into a second language for texts already in yours
 - Definitions and alternative translations for a word or a short phrase (Google)
@@ -59,6 +60,12 @@ Give the widget a global shortcut (right click > Configure > Keyboard Shortcuts)
 Your native language is the system language unless you pick another one in the settings (**General** > **Native language**), for example when your desktop is in English or in a language you are learning.
 
 At the top of that window, **Source** shows the text that was translated and its language. Expand it to edit the text and translate again (**Translate** or `Ctrl+Enter`), or pick the source language when the detection got it wrong. The **Destination** menu of that window picks another language by hand and translates the text shown in **Source**. Reading the selection needs **wl-clipboard** on Wayland, or **xsel** on X11 (package names are the same on the distributions above).
+
+### Open the widget
+
+**General** > **Open the widget** sets a second global shortcut. It opens the widget and puts the cursor in the input, the same as clicking the icon. It does not translate the selection.
+
+The shortcut is registered with KWin, like keeping the translation window above other windows. Without KWin, nothing happens.
 
 ### Auto destination
 
