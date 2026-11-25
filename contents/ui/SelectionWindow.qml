@@ -59,19 +59,24 @@ Window {
         present()
     }
 
-    // show() does nothing while this window is already mapped, which is why a
+    // show() alone does nothing while this window is already mapped, so a
     // shortcut looked ignored when the previous translation stayed open behind
-    // another window. Remap it unless it is already the active window.
+    // another window. raise() and requestActivate() bring it forward.
+    // Unmapping it (hide then show) must not be used: this window is a child of
+    // the widget, and hiding it opens the widget's main window instead.
     function present() {
-        if (visibility === Window.Minimized || !visible) {
+        if (visibility === Window.Minimized || !visible)
             showNormal()
-        } else if (!active) {
-            hide()
+        else
             show()
-        }
         raise()
         requestActivate()
-        windowArea.forceActiveFocus()
+        // focus, not forceActiveFocus: forcing focus while this window is not
+        // the active one moves focus into the widget and opens its main window
+        windowArea.focus = true
+        // Activation can expand the widget. The translation belongs in this window.
+        if (host)
+            host.expanded = false
     }
 
     onClosing: {
