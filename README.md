@@ -57,7 +57,7 @@ Give the widget a global shortcut (right click > Configure > Keyboard Shortcuts)
 
 Your native language is the system language unless you pick another one in the settings (**General** > **Native language**), for example when your desktop is in English or in a language you are learning.
 
-The **Destination** menu of that window picks another language by hand. This needs **wl-clipboard** on Wayland, or **xsel** on X11 (package names are the same on the distributions above).
+Under the translation, the window shows the text that was translated, on one line. **Source** expands it: the text can be edited and translated again with **Translate** or `Ctrl+Enter`. The **Destination** menu of that window translates this text into another language. Reading the selection needs **wl-clipboard** on Wayland, or **xsel** on X11 (package names are the same on the distributions above).
 
 ### Auto destination
 
@@ -161,6 +161,10 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 | `Esc`        | Clear all text    |
 
 ## Changelog
+
+### Unreleased
+
+- New: the selection popup shows the text that was translated, on one line. Expand **Source** to edit it and translate again (**Translate** or `Ctrl+Enter`). The popup's **Destination** menu translates that text instead of reading the selection again.
 
 ### 6.1.4
 

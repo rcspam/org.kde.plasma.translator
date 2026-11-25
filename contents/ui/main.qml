@@ -55,6 +55,11 @@ PlasmoidItem {
     property bool actl: false
     property bool actr: false
     property string windowtext
+    // Text that the popup translated. Empty for a message that is not a translation
+    property string sourceText: ""
+    property bool showSource: false
+    // Collapsed until the user opens it, including on each new selection
+    property bool sourceExpanded: false
     property string tmpfolder: StandardPaths.writableLocation(
                                    StandardPaths.TempLocation).toString(
                                    ).replace("file://", "")
@@ -84,6 +89,7 @@ PlasmoidItem {
         color: Kirigami.Theme.backgroundColor
         onClosing: {
             windowtext = ""
+            root.resetPopupSource()
             root.selectionBusy = false
             root.selectionRequest++ // drops the translation still running
             root.clearSelection()
@@ -114,17 +120,21 @@ PlasmoidItem {
                     model: root.langlist
                     currentIndex: root.codelist.indexOf(nativeCode())
                     // Only a choice made here is kept for the next texts: the
-                    // index also changes to show the language a text went to
+                    // index also changes to show the language a text went to.
+                    // Retranslate the text already in the popup; reading the
+                    // selection again would drop an edit
                     onActivated: function(index) {
                         root.popupIndex = index
-                        falsetime.start()
+                        if (root.showSource) {
+                            root.retranslatePopupSource()
+                        }
                     }
                 }
                 PlasmaComponents.ToolButton {
                     Layout.fillWidth: false
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     icon.name: "edit-copy"
-                    enabled: windowarea.focus
+                    enabled: windowarea.text.length > 0
                     QQC2.ToolTip.text: i18n("Copy")
                     QQC2.ToolTip.visible: hovered
                     onClicked: {
@@ -155,6 +165,70 @@ PlasmoidItem {
                     visible: running
                 }
             }
+            RowLayout {
+                visible: root.showSource
+                Layout.fillWidth: true
+                PlasmaComponents.ToolButton {
+                    id: sourceToggle
+                    checkable: true
+                    icon.name: root.sourceExpanded ? "arrow-down" : "arrow-right"
+                    text: i18n("Source")
+                    display: QQC2.AbstractButton.TextBesideIcon
+                    onClicked: {
+                        root.sourceExpanded = !root.sourceExpanded
+                        if (root.sourceExpanded) {
+                            Qt.callLater(function() { sourceArea.forceActiveFocus() })
+                        }
+                    }
+                    // A click writes checked itself. This binding follows sourceExpanded,
+                    // including when the next selection collapses the section
+                    Binding on checked {
+                        value: root.sourceExpanded
+                    }
+                }
+                PlasmaComponents.Label {
+                    visible: !root.sourceExpanded
+                    Layout.fillWidth: true
+                    // Prefer the remaining space so a long text elides instead of widening the row
+                    Layout.preferredWidth: 0
+                    text: root.sourceText
+                    elide: Text.ElideRight
+                    wrapMode: Text.NoWrap
+                    maximumLineCount: 1
+                }
+                Item {
+                    visible: root.sourceExpanded
+                    Layout.fillWidth: true
+                }
+                PlasmaComponents.ToolButton {
+                    visible: root.sourceExpanded
+                    icon.name: "globe"
+                    text: i18n("Translate")
+                    display: QQC2.AbstractButton.TextBesideIcon
+                    enabled: sourceArea.text.length > 0 && sourceArea.text.length < 5001
+                             && !root.selectionBusy
+                    onClicked: root.retranslatePopupSource()
+                    QQC2.ToolTip.text: i18n("Translate (CTRL+Enter)")
+                    QQC2.ToolTip.visible: hovered
+                }
+            }
+            PlasmaComponents.ScrollView {
+                visible: root.showSource && root.sourceExpanded
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 4
+                Layout.maximumHeight: Kirigami.Units.gridUnit * 4
+                // Text wraps, so only vertical scrolling is needed
+                QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+                PlasmaComponents.TextArea {
+                    id: sourceArea
+                    wrapMode: Text.Wrap
+                    onTextChanged: {
+                        if (root.sourceText !== text) {
+                            root.sourceText = text
+                        }
+                    }
+                }
+            }
         }
 
         Component.onCompleted: {
@@ -167,6 +241,14 @@ PlasmoidItem {
             onTriggered: {
                 info.close()
             }
+        }
+        QQC2.Action {
+            shortcut: "Ctrl+Return"
+            onTriggered: root.retranslatePopupSource()
+        }
+        QQC2.Action {
+            shortcut: "Ctrl+Enter"
+            onTriggered: root.retranslatePopupSource()
         }
     }
 
@@ -376,6 +458,28 @@ PlasmoidItem {
         windowarea.focus = true
     }
 
+    function resetPopupSource() {
+        root.showSource = false
+        root.sourceExpanded = false
+        root.sourceText = ""
+    }
+
+    // Keep the field in sync when the selection is replaced. Typing updates
+    // sourceText from the field, so this assignment is skipped then
+    onSourceTextChanged: {
+        if (sourceArea.text !== sourceText) {
+            sourceArea.text = sourceText
+        }
+    }
+
+    // Language the popup translates into, and the one used when the text is already in it
+    function popupLanguages() {
+        var nativeLang = nativeCode()
+        var popup = root.popupIndex == -1 ? nativeLang : root.codelist[root.popupIndex]
+        var favorite = root.autoDestination ? secondCode() : root.codelist[root.destinationIndex] || popup
+        return { target: popup, other: Lang.otherTarget(popup, favorite, nativeLang) }
+    }
+
     // Translates a selected text into the popup's language (the native one
     // by default). A text that comes back nearly unchanged was already in that
     // language: it goes to Lang.otherTarget instead.
@@ -384,15 +488,33 @@ PlasmoidItem {
             root.expanded = true
             return
         }
-        var nativeLang = nativeCode()
-        var popup = root.popupIndex == -1 ? nativeLang : root.codelist[root.popupIndex]
-        var favorite = root.autoDestination ? secondCode() : root.codelist[root.destinationIndex] || popup
+        root.sourceText = text
+        root.showSource = true
+        root.sourceExpanded = false
+        var langs = popupLanguages()
         // LLMs take a few seconds: open the window at once
         var request = ++root.selectionRequest
         showSelectionWindow("")
         root.selectionBusy = true
-        translateOrOther(text, "auto", popup, Lang.otherTarget(popup, favorite, nativeLang),
-                         function(output, used) {
+        translateOrOther(text, "auto", langs.target, langs.other, function(output, used) {
+            showTranslation(output, used, request)
+        })
+    }
+
+    // Translates the text currently shown in the popup. The field is left as the user edited it
+    function retranslatePopupSource() {
+        if (!root.showSource) {
+            return
+        }
+        var text = sourceArea.text
+        if (text.length === 0 || text.length > 5000) {
+            return
+        }
+        var langs = popupLanguages()
+        var request = ++root.selectionRequest
+        root.selectionBusy = true
+        showSelectionWindow("")
+        translateOrOther(text, "auto", langs.target, langs.other, function(output, used) {
             showTranslation(output, used, request)
         })
     }
@@ -419,6 +541,7 @@ PlasmoidItem {
         root.selectionBusy = false
         if (output.length === 0) {
             info.hide()
+            root.resetPopupSource()
             root.expanded = true
             return
         }
@@ -511,6 +634,7 @@ PlasmoidItem {
         onTriggered: {
             root.expanded = false
             if (!root.selectionToolFound) {
+                root.resetPopupSource()
                 showSelectionWindow(i18n("Reading the selected text needs %1, which is not installed.",
                                          root.selectionPackage))
                 return
