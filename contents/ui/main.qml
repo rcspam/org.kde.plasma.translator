@@ -122,9 +122,10 @@ PlasmoidItem {
                     text: i18n("Source")
                     display: QQC2.AbstractButton.TextBesideIcon
                     onClicked: {
-                        root.sourceExpanded = !root.sourceExpanded
                         if (root.sourceExpanded) {
-                            Qt.callLater(function() { sourceArea.forceActiveFocus() })
+                            root.sourceExpanded = false
+                        } else {
+                            root.expandPopupSource()
                         }
                     }
                     // A click writes checked itself. This binding follows sourceExpanded,
@@ -133,9 +134,14 @@ PlasmoidItem {
                         value: root.sourceExpanded
                     }
                 }
-                PlasmaComponents.Label {
-                    visible: root.popupSourceName.length > 0
-                    text: root.popupSourceName
+                ComboBox3 {
+                    enabled: false
+                    editable: true
+                    model: [root.popupSourceName]
+                    currentIndex: 0
+                    Layout.minimumWidth: Kirigami.Units.gridUnit * 6
+                    Layout.preferredWidth: implicitWidth
+                    Layout.maximumWidth: Math.round(parent.width * 0.5)
                     Layout.alignment: Qt.AlignVCenter
                 }
                 PlasmaComponents.Label {
@@ -144,9 +150,16 @@ PlasmoidItem {
                     // Prefer the remaining space so a long text elides instead of widening the row
                     Layout.preferredWidth: 0
                     text: root.sourceText
+                    color: Kirigami.Theme.disabledTextColor
                     elide: Text.ElideRight
                     wrapMode: Text.NoWrap
                     maximumLineCount: 1
+                    MouseArea {
+                        z: 1
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.expandPopupSource()
+                    }
                 }
                 Item {
                     visible: root.sourceExpanded
@@ -470,6 +483,11 @@ PlasmoidItem {
         windowarea.text = windowtext
         info.show()
         windowarea.focus = true
+    }
+
+    function expandPopupSource() {
+        root.sourceExpanded = true
+        Qt.callLater(function() { sourceArea.forceActiveFocus() })
     }
 
     function resetPopupSource() {
