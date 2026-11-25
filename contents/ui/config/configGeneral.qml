@@ -558,11 +558,26 @@ Item {
                 Layout.fillWidth: true
             }
         }
-        // translate-shell engines; Google gives the most complete pages
-        QQC2.CheckBox {
-            text: i18n("Show definitions and alternatives for a word or a short phrase")
-            checked: configGeneral.cfg_dictionary
-            onClicked: configGeneral.cfg_dictionary = checked
+        // The pages come from trans: no effect with a server. The hint sits on
+        // a wrapper, since a disabled control gets no hover
+        Item {
+            implicitWidth: dictionaryCheck.implicitWidth
+            implicitHeight: dictionaryCheck.implicitHeight
+            QQC2.CheckBox {
+                id: dictionaryCheck
+                text: i18n("Show definitions and alternatives for a word or a short phrase")
+                enabled: !Servers.isServerEngine(plasmoid.configuration.engine)
+                checked: configGeneral.cfg_dictionary
+                onClicked: configGeneral.cfg_dictionary = checked
+            }
+            HoverHandler {
+                id: dictionaryHover
+            }
+            QQC2.ToolTip {
+                text: i18n("Only with the Google engine. Your own servers translate without it.")
+                visible: dictionaryHover.hovered
+                delay: Kirigami.Units.toolTipDelay
+            }
         }
 
         QQC2.Label {

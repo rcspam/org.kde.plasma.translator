@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: org.kde.plasma.translator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 15:26+0100\n"
+"POT-Creation-Date: 2026-11-25 15:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -76,182 +76,186 @@ msgid ""
 "translated into this one."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:563
+#: contents/ui/config/configGeneral.qml:568
 msgid "Show definitions and alternatives for a word or a short phrase"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:573 contents/ui/main.qml:1104
+#: contents/ui/config/configGeneral.qml:577
+msgid "Only with the Google engine. Your own servers translate without it."
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:588 contents/ui/main.qml:1104
 msgid "Please make sure that at least one language is selected."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:574 contents/ui/main.qml:1105
+#: contents/ui/config/configGeneral.qml:589 contents/ui/main.qml:1105
 msgid "Please make sure that at least two languages are selected."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:579
+#: contents/ui/config/configGeneral.qml:594
 msgid "Filter..."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:617
+#: contents/ui/config/configGeneral.qml:632
 msgid "Name"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:626
+#: contents/ui/config/configGeneral.qml:641
 msgid "Native Name"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:635
+#: contents/ui/config/configGeneral.qml:650
 msgid "Code"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:757
+#: contents/ui/config/configGeneral.qml:772
 msgid "Uncheck all"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:757
+#: contents/ui/config/configGeneral.qml:772
 msgid "Check all"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:792
+#: contents/ui/config/configGeneral.qml:807
 msgid "Move up"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:814
+#: contents/ui/config/configGeneral.qml:829
 msgid "Move down"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:917
+#: contents/ui/config/configGeneral.qml:932
 msgid "Updating..."
 msgstr ""
 
-#: contents/ui/config/configServers.qml:35
+#: contents/ui/config/configServers.qml:37
 msgid "Servers"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:79
+#: contents/ui/config/configServers.qml:81
 msgid "LLM (OpenAI-compatible: Ollama, LM Studio…)"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:81
+#: contents/ui/config/configServers.qml:83
 msgid "Custom"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:236
+#: contents/ui/config/configServers.qml:238
 msgid "All languages"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:237
+#: contents/ui/config/configServers.qml:239
 msgid "Unknown until the server answers. Press Test."
 msgstr ""
 
-#: contents/ui/config/configServers.qml:242
+#: contents/ui/config/configServers.qml:244
 msgid "%1 language"
 msgid_plural "%1 languages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: contents/ui/config/configServers.qml:275
+#: contents/ui/config/configServers.qml:277
 msgid "It works: %1"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:292
+#: contents/ui/config/configServers.qml:294
 msgid "Translation servers added here appear as engines in the General tab."
 msgstr ""
 
-#: contents/ui/config/configServers.qml:332
+#: contents/ui/config/configServers.qml:334
 msgid "No server yet"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:339
+#: contents/ui/config/configServers.qml:341
 msgid "Add"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:344
+#: contents/ui/config/configServers.qml:346
 msgid "Remove"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:370
+#: contents/ui/config/configServers.qml:372
 msgid "Name:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:379
+#: contents/ui/config/configServers.qml:381
 msgid "Type:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:393
+#: contents/ui/config/configServers.qml:395
 msgid "URL:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:393
+#: contents/ui/config/configServers.qml:395
 msgid "Address:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:406
+#: contents/ui/config/configServers.qml:408
 msgid "Token:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:406
+#: contents/ui/config/configServers.qml:408
 msgid "API key:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:411
+#: contents/ui/config/configServers.qml:413
 msgid "Required"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:411
+#: contents/ui/config/configServers.qml:413
 msgid "Optional"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:417
+#: contents/ui/config/configServers.qml:419
 msgid "Model:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:438
+#: contents/ui/config/configServers.qml:440
 msgid "Installed models"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:444
+#: contents/ui/config/configServers.qml:446
 msgid "Instructions:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:466
+#: contents/ui/config/configServers.qml:468
 msgid ""
 "Placeholders: {text} {source_name} {source_code} {target_name} "
 "{target_code}. Without {text}, the text is added at the end."
 msgstr ""
 
-#: contents/ui/config/configServers.qml:471
+#: contents/ui/config/configServers.qml:473
 msgid "Method:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:486
+#: contents/ui/config/configServers.qml:488
 msgid "Headers:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:500
+#: contents/ui/config/configServers.qml:502
 msgid "Body:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:516
+#: contents/ui/config/configServers.qml:518
 msgid "Result path:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:535
+#: contents/ui/config/configServers.qml:537
 msgid ""
 "Placeholders: {text} {source} {target} {source_name} {target_name} "
 "{api_key}. Leave the result path empty when the server answers with plain "
 "text."
 msgstr ""
 
-#: contents/ui/config/configServers.qml:540
+#: contents/ui/config/configServers.qml:542
 msgid "Languages:"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:556
+#: contents/ui/config/configServers.qml:558
 msgid "Test"
 msgstr ""
 
-#: contents/ui/config/configServers.qml:570
+#: contents/ui/config/configServers.qml:572
 msgid "Testing…"
 msgstr ""
 
