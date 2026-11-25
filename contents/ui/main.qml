@@ -60,6 +60,15 @@ PlasmoidItem {
     property bool showSource: false
     // Collapsed until the user opens it, including on each new selection
     property bool sourceExpanded: false
+    // Language of that text, when the engine reports one
+    property string popupSourceCode: ""
+    readonly property string popupSourceName: {
+        var code = popupSourceCode
+        if (code.length === 0) {
+            return ""
+        }
+        return langName(code) || langName(code.split("-")[0]) || code
+    }
     property string tmpfolder: StandardPaths.writableLocation(
                                    StandardPaths.TempLocation).toString(
                                    ).replace("file://", "")
@@ -103,6 +112,75 @@ PlasmoidItem {
             anchors.top: parent.top
             anchors.topMargin: Kirigami.Units.smallSpacing
             anchors.bottom: parent.bottom
+            RowLayout {
+                visible: root.showSource
+                Layout.fillWidth: true
+                PlasmaComponents.ToolButton {
+                    id: sourceToggle
+                    checkable: true
+                    icon.name: root.sourceExpanded ? "arrow-down" : "arrow-right"
+                    text: i18n("Source")
+                    display: QQC2.AbstractButton.TextBesideIcon
+                    onClicked: {
+                        root.sourceExpanded = !root.sourceExpanded
+                        if (root.sourceExpanded) {
+                            Qt.callLater(function() { sourceArea.forceActiveFocus() })
+                        }
+                    }
+                    // A click writes checked itself. This binding follows sourceExpanded,
+                    // including when the next selection collapses the section
+                    Binding on checked {
+                        value: root.sourceExpanded
+                    }
+                }
+                PlasmaComponents.Label {
+                    visible: root.popupSourceName.length > 0
+                    text: root.popupSourceName
+                    Layout.alignment: Qt.AlignVCenter
+                }
+                PlasmaComponents.Label {
+                    visible: !root.sourceExpanded
+                    Layout.fillWidth: true
+                    // Prefer the remaining space so a long text elides instead of widening the row
+                    Layout.preferredWidth: 0
+                    text: root.sourceText
+                    elide: Text.ElideRight
+                    wrapMode: Text.NoWrap
+                    maximumLineCount: 1
+                }
+                Item {
+                    visible: root.sourceExpanded
+                    Layout.fillWidth: true
+                }
+                PlasmaComponents.ToolButton {
+                    visible: root.sourceExpanded
+                    icon.name: "globe"
+                    text: i18n("Translate")
+                    display: QQC2.AbstractButton.TextBesideIcon
+                    enabled: sourceArea.text.length > 0 && sourceArea.text.length < 5001
+                             && !root.selectionBusy
+                    onClicked: root.retranslatePopupSource()
+                    QQC2.ToolTip.text: i18n("Translate (CTRL+Enter)")
+                    QQC2.ToolTip.visible: hovered
+                }
+            }
+            PlasmaComponents.ScrollView {
+                visible: root.showSource && root.sourceExpanded
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 4
+                Layout.maximumHeight: Kirigami.Units.gridUnit * 4
+                // Text wraps, so only vertical scrolling is needed
+                QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+                PlasmaComponents.TextArea {
+                    id: sourceArea
+                    wrapMode: Text.Wrap
+                    onTextChanged: {
+                        if (root.sourceText !== text) {
+                            root.sourceText = text
+                        }
+                    }
+                }
+            }
             RowLayout {
                 Layout.minimumWidth: parent.width
                 width: parent.width
@@ -163,70 +241,6 @@ PlasmoidItem {
                     anchors.centerIn: parent
                     running: root.selectionBusy
                     visible: running
-                }
-            }
-            RowLayout {
-                visible: root.showSource
-                Layout.fillWidth: true
-                PlasmaComponents.ToolButton {
-                    id: sourceToggle
-                    checkable: true
-                    icon.name: root.sourceExpanded ? "arrow-down" : "arrow-right"
-                    text: i18n("Source")
-                    display: QQC2.AbstractButton.TextBesideIcon
-                    onClicked: {
-                        root.sourceExpanded = !root.sourceExpanded
-                        if (root.sourceExpanded) {
-                            Qt.callLater(function() { sourceArea.forceActiveFocus() })
-                        }
-                    }
-                    // A click writes checked itself. This binding follows sourceExpanded,
-                    // including when the next selection collapses the section
-                    Binding on checked {
-                        value: root.sourceExpanded
-                    }
-                }
-                PlasmaComponents.Label {
-                    visible: !root.sourceExpanded
-                    Layout.fillWidth: true
-                    // Prefer the remaining space so a long text elides instead of widening the row
-                    Layout.preferredWidth: 0
-                    text: root.sourceText
-                    elide: Text.ElideRight
-                    wrapMode: Text.NoWrap
-                    maximumLineCount: 1
-                }
-                Item {
-                    visible: root.sourceExpanded
-                    Layout.fillWidth: true
-                }
-                PlasmaComponents.ToolButton {
-                    visible: root.sourceExpanded
-                    icon.name: "globe"
-                    text: i18n("Translate")
-                    display: QQC2.AbstractButton.TextBesideIcon
-                    enabled: sourceArea.text.length > 0 && sourceArea.text.length < 5001
-                             && !root.selectionBusy
-                    onClicked: root.retranslatePopupSource()
-                    QQC2.ToolTip.text: i18n("Translate (CTRL+Enter)")
-                    QQC2.ToolTip.visible: hovered
-                }
-            }
-            PlasmaComponents.ScrollView {
-                visible: root.showSource && root.sourceExpanded
-                Layout.fillWidth: true
-                Layout.preferredHeight: Kirigami.Units.gridUnit * 4
-                Layout.maximumHeight: Kirigami.Units.gridUnit * 4
-                // Text wraps, so only vertical scrolling is needed
-                QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
-                PlasmaComponents.TextArea {
-                    id: sourceArea
-                    wrapMode: Text.Wrap
-                    onTextChanged: {
-                        if (root.sourceText !== text) {
-                            root.sourceText = text
-                        }
-                    }
                 }
             }
         }
@@ -462,6 +476,7 @@ PlasmoidItem {
         root.showSource = false
         root.sourceExpanded = false
         root.sourceText = ""
+        root.popupSourceCode = ""
     }
 
     // Keep the field in sync when the selection is replaced. Typing updates
@@ -494,10 +509,13 @@ PlasmoidItem {
         var langs = popupLanguages()
         // LLMs take a few seconds: open the window at once
         var request = ++root.selectionRequest
+        // After the request id changes, a detection still in flight cannot write its language back
+        root.popupSourceCode = ""
         showSelectionWindow("")
         root.selectionBusy = true
-        translateOrOther(text, "auto", langs.target, langs.other, function(output, used) {
-            showTranslation(output, used, request)
+        identifyPopupSource(text, request)
+        translateOrOther(text, "auto", langs.target, langs.other, function(output, used, ok, detected) {
+            showTranslation(output, used, request, detected)
         })
     }
 
@@ -512,10 +530,28 @@ PlasmoidItem {
         }
         var langs = popupLanguages()
         var request = ++root.selectionRequest
+        root.popupSourceCode = ""
         root.selectionBusy = true
         showSelectionWindow("")
-        translateOrOther(text, "auto", langs.target, langs.other, function(output, used) {
-            showTranslation(output, used, request)
+        identifyPopupSource(text, request)
+        translateOrOther(text, "auto", langs.target, langs.other, function(output, used, ok, detected) {
+            showTranslation(output, used, request, detected)
+        })
+    }
+
+    // trans -identify for the built-in engines. Servers report the language with the translation
+    function identifyPopupSource(text, request) {
+        if (root.usesServer) {
+            return
+        }
+        runner.run("trans -identify -no-ansi -- " + Shell.quote(text), function(stdout) {
+            if (request !== root.selectionRequest) {
+                return
+            }
+            var code = Lang.identifiedCode(stdout || "")
+            if (code.length > 0) {
+                root.popupSourceCode = code
+            }
         })
     }
 
@@ -534,7 +570,7 @@ PlasmoidItem {
         })
     }
 
-    function showTranslation(output, target, request) {
+    function showTranslation(output, target, request, detected) {
         if (request !== root.selectionRequest) {
             return // window closed or another language chosen meanwhile
         }
@@ -544,6 +580,9 @@ PlasmoidItem {
             root.resetPopupSource()
             root.expanded = true
             return
+        }
+        if (detected) {
+            root.popupSourceCode = detected
         }
         destinationpopup.currentIndex = root.codelist.indexOf(target)
         showSelectionWindow(output)
