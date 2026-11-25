@@ -34,6 +34,8 @@ Item {
     property string cfg_secondLanguageDefault
     property bool cfg_dictionary
     property bool cfg_dictionaryDefault
+    property bool cfg_keepAbove
+    property bool cfg_keepAboveDefault
     property string title: i18n("Servers")
 
     // Edited in place; cfg_servers holds its JSON for saving. Form fields are

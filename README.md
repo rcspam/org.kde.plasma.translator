@@ -167,6 +167,7 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 
 - New: the selection window shows the text that was translated, with its language. Expand **Source** to edit the text and translate again, or to choose the source language.
 - Google and Bing give the source language with the translation: no separate detection request any more.
+- Fixed: the selection window stays above other windows, so a new shortcut no longer seems to do nothing while the previous window sits behind the app (issue 7). On Wayland this goes through a small KWin script; it can be turned off in the General tab.
 - New: a word or a short phrase also shows its definitions and alternative translations, under the translation (Google; can be turned off in the General tab). Copy, Listen and Swap keep the translation alone.
 
 ### 6.1.4

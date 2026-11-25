@@ -167,6 +167,10 @@
     <label>Show trans's dictionary page (definitions, alternatives) for a word or short phrase</label>
     <default>true</default>
   </entry>
+  <entry name="keepAbove" type="Bool">
+    <label>Keep the selection window above other windows</label>
+    <default>true</default>
+  </entry>
   <entry name="servers" type="String">
     <label>User-defined translation servers (JSON array)</label>
     <default>[]</default>

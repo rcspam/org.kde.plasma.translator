@@ -64,6 +64,8 @@ PlasmoidItem {
     property string rightpage: ""
     property string windowpage: ""
     property bool cfg_dictionary: plasmoid.configuration.dictionary
+    property bool cfg_keepAbove: plasmoid.configuration.keepAbove
+    onCfg_keepAboveChanged: updateKeepAbove()
     property string tmpfolder: StandardPaths.writableLocation(
                                    StandardPaths.TempLocation).toString(
                                    ).replace("file://", "")
@@ -603,6 +605,27 @@ PlasmoidItem {
         runner.run("trans -list-all", function(stdout) {
             root.endonymCodes = Lang.endonymCodes(stdout || "")
         })
+        updateKeepAbove()
+    }
+
+    // Keeps the selection window above the others. Qt does not pass
+    // WindowStaysOnTopHint to KWin on Wayland, so the window went behind the
+    // app being translated and the next shortcut looked ignored. A KWin script
+    // sets keepAbove on that window each time it is mapped; it stays loaded,
+    // and is replaced when the setting changes. Without KWin, nothing happens.
+    function updateKeepAbove() {
+        var name = "org.kde.plasma.translator.keepabove"
+        var file = root.tmpfolder + "/" + name + ".js"
+        var script = "function apply(w) {\n"
+                + "    if (w.resourceName === \"plasmashell\" && w.caption === " + JSON.stringify(info.title) + ")\n"
+                + "        w.keepAbove = " + root.cfg_keepAbove + "\n}\n"
+                + "workspace.windowAdded.connect(apply)\n"
+                + "workspace.windowList().forEach(apply)\n"
+        var call = "dbus-send --session --print-reply --dest=org.kde.KWin /Scripting org.kde.kwin.Scripting."
+        runner.run(call + "unloadScript string:" + name + " >/dev/null 2>&1"
+                   + "; printf '%s' " + Shell.quote(script) + " > " + Shell.quote(file)
+                   + " && " + call + "loadScript string:" + Shell.quote(file) + " string:" + name + " >/dev/null"
+                   + " && " + call + "start >/dev/null", function() {})
     }
 
     Connections {

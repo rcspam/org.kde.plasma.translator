@@ -49,6 +49,8 @@ Item {
     property string cfg_secondLanguageDefault
     property bool cfg_dictionary
     property bool cfg_dictionaryDefault
+    property bool cfg_keepAbove
+    property bool cfg_keepAboveDefault
     property var secondmodel: {
         var languages = []
         try {
@@ -557,6 +559,11 @@ Item {
             Item {
                 Layout.fillWidth: true
             }
+        }
+        QQC2.CheckBox {
+            text: i18n("Keep the translation window above other windows")
+            checked: configGeneral.cfg_keepAbove
+            onClicked: configGeneral.cfg_keepAbove = checked
         }
         // The pages come from trans: no effect with a server. The hint sits on
         // a wrapper, since a disabled control gets no hover
