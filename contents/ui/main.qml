@@ -133,11 +133,58 @@ PlasmoidItem {
                     id: sourceLanguage
                     editable: true
                     model: [i18n("Autodetect")].concat(root.langlist)
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: Kirigami.Units.gridUnit * 6
-                    Layout.maximumWidth: Math.round(parent.width * 0.5)
+                    Layout.fillWidth: false
                     Layout.alignment: Qt.AlignVCenter
-                    onModelChanged: currentIndex = root.popupSourceListIndex(root.popupSourceCode)
+                    // Closed width fits 80% of the language names. Longer names
+                    // are clipped here; the open menu stays wide enough for them
+                    property int nameLimit: 0
+                    TextMetrics {
+                        id: nameMetrics
+                        font: sourceLanguage.font
+                    }
+                    function measureNameLimit() {
+                        var names = root.langlist
+                        if (!names || names.length === 0) {
+                            nameMetrics.text = i18n("Autodetect")
+                            return Math.ceil(nameMetrics.width)
+                        }
+                        var widths = []
+                        for (var i = 0; i < names.length; i++) {
+                            nameMetrics.text = names[i]
+                            widths.push(nameMetrics.width)
+                        }
+                        widths.sort(function(a, b) { return a - b })
+                        var index = Math.ceil(names.length * 0.8) - 1
+                        if (index < 0) {
+                            index = 0
+                        }
+                        // Autodetect is the default entry, not one of the long names
+                        nameMetrics.text = i18n("Autodetect")
+                        return Math.ceil(Math.max(widths[index], nameMetrics.width))
+                    }
+                    readonly property int closedWidth: {
+                        var extra = leftPadding + rightPadding
+                        if (indicator) {
+                            extra += indicator.implicitWidth + spacing
+                        }
+                        return nameLimit + extra
+                    }
+                    Layout.preferredWidth: closedWidth
+                    Layout.minimumWidth: closedWidth
+                    Layout.maximumWidth: closedWidth
+                    onModelChanged: {
+                        currentIndex = root.popupSourceListIndex(root.popupSourceCode)
+                        nameLimit = measureNameLimit()
+                    }
+                    Component.onCompleted: {
+                        nameLimit = measureNameLimit()
+                        popup.width = Qt.binding(function() {
+                            return Math.max(sourceLanguage.width,
+                                             sourceLanguage.implicitContentWidth
+                                             + sourceLanguage.leftPadding
+                                             + sourceLanguage.rightPadding)
+                        })
+                    }
                     // A choice is kept for this text. Autodetect lets the engine decide again
                     onActivated: function(index) {
                         if (index <= 0) {
