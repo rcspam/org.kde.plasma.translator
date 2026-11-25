@@ -60,6 +60,10 @@ PlasmoidItem {
     property bool actl: false
     property bool actr: false
     property string windowtext
+    // Dictionary pages shown under the translation, see translateTo
+    property string rightpage: ""
+    property string windowpage: ""
+    property bool cfg_dictionary: plasmoid.configuration.dictionary
     property string tmpfolder: StandardPaths.writableLocation(
                                    StandardPaths.TempLocation).toString(
                                    ).replace("file://", "")
@@ -90,6 +94,7 @@ PlasmoidItem {
         onClosing: {
             windowtext = ""
             root.popupHasSource = false
+            root.windowpage = ""
             root.selectionBusy = false
             root.selectionRequest++ // drops the translation still running
             root.clearSelection()
@@ -204,7 +209,9 @@ PlasmoidItem {
             }
             Item {
                 Layout.fillWidth: true
-                Layout.fillHeight: true
+                // A dictionary page below takes the room left by a short translation
+                Layout.fillHeight: root.windowpage.length === 0
+                Layout.preferredHeight: windowarea.implicitHeight
                 PlasmaComponents.ScrollView {
                     anchors.fill: parent
                     // Text wraps, so only vertical scrolling is needed
@@ -221,6 +228,17 @@ PlasmoidItem {
                     anchors.centerIn: parent
                     running: root.selectionBusy
                     visible: running
+                }
+            }
+            PlasmaComponents.ScrollView {
+                visible: root.windowpage.length > 0
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+                PlasmaComponents.TextArea {
+                    wrapMode: Text.Wrap
+                    readOnly: true
+                    text: root.windowpage
                 }
             }
         }
@@ -385,11 +403,13 @@ PlasmoidItem {
             target = Lang.autoTarget(source, nativeCode(), secondCode())
             other = secondCode()
         }
-        translateOrOther(root.lefttext, source, target, other, function(output, used, ok, detected) {
+        root.rightpage = ""
+        translateOrOther(root.lefttext, source, target, other, function(output, used, ok, detected, page) {
             if (request !== root.translateRequest) {
                 return
             }
             root.righttext = ok || root.usesServer ? output : i18n("Unable to translate.") + "\n" + output
+            root.rightpage = ok && page ? page : ""
             root.resultCode = used
             if (ok && root.cfg_autodetect && detected) {
                 root.detectlist = [langName(detected) || detected]
@@ -490,37 +510,39 @@ PlasmoidItem {
         }
         // LLMs take a few seconds: open the window at once
         var request = ++root.selectionRequest
+        root.windowpage = ""
         showSelectionWindow("")
         root.selectionBusy = true
         translateOrOther(text, source, popup, Lang.otherTarget(popup, favorite, nativeLang),
-                         function(output, used, ok, detected) {
+                         function(output, used, ok, detected, page) {
             if (request === root.selectionRequest && detected) {
                 root.popupDetected = langName(detected) || langName(detected.split("-")[0]) || detected
             }
-            showTranslation(output, used, request)
+            showTranslation(output, used, request, ok ? page : "")
         })
     }
 
     // Translates into target. A text of unknown language ("auto" source) that
     // comes back nearly unchanged was already in that language: it goes to
-    // other instead. done(output, used target, ok, detected source)
+    // other instead. done(output, used target, ok, detected source, page)
     function translateOrOther(text, source, target, other, done) {
-        translateTo(text, source, target, function(output, ok, detected) {
+        translateTo(text, source, target, function(output, ok, detected, page) {
             if (ok && source === "auto" && other !== target && Lang.unchanged(text, output)) {
-                translateTo(text, source, other, function(output2, ok2, detected2) {
-                    done(output2, other, ok2, detected2)
+                translateTo(text, source, other, function(output2, ok2, detected2, page2) {
+                    done(output2, other, ok2, detected2, page2)
                 })
             } else {
-                done(output, target, ok, detected)
+                done(output, target, ok, detected, page)
             }
         })
     }
 
-    function showTranslation(output, target, request) {
+    function showTranslation(output, target, request, page) {
         if (request !== root.selectionRequest) {
             return // window closed or another language chosen meanwhile
         }
         root.selectionBusy = false
+        root.windowpage = page || ""
         if (output.length === 0) {
             info.hide()
             root.expanded = true
@@ -530,10 +552,11 @@ PlasmoidItem {
         showSelectionWindow(output)
     }
 
-    // Same call for every engine: done(output, ok, detected), output being the
-    // translation, or the error to show when ok is false. detected is the
-    // source language when the engine reports it (reportsSource) and source
-    // is "auto". source is a code or "auto".
+    // Same call for every engine: done(output, ok, detected, page), output
+    // being the translation, or the error to show when ok is false. detected
+    // is the source language when the engine reports it (reportsSource) and
+    // source is "auto". page is trans's dictionary page for a short line
+    // (definitions, alternatives), "" otherwise. source is a code or "auto".
     function translateTo(text, source, target, done) {
         if (root.usesServer) {
             translateWithServer(text, source, target, function(result, server) {
@@ -543,16 +566,17 @@ PlasmoidItem {
             return
         }
         var from = source === "auto" ? "" : source
+        var page = root.cfg_dictionary && Lang.isLookup(text) ? "y" : "n"
         // -brief without the languages line, which names the source language
         runner.run("trans " + from + ":" + target + " -e " + root.cfg_engine + " -no-bidi -no-ansi"
                    + " -show-original n -show-original-phonetics n -show-translation-phonetics n"
                    + " -show-prompt-message n -show-languages y -show-original-dictionary n"
-                   + " -show-dictionary n -show-alternatives n -- "
+                   + " -show-dictionary " + page + " -show-alternatives " + page + " -- "
                    + Shell.quote(text), function(stdout, stderr) {
             var result = Lang.splitLanguages(stdout)
             var detected = source === "auto" && root.reportsSource
                     ? root.endonymCodes[result.source] || "" : ""
-            done(result.text || stderr.trim(), result.text.length > 0, detected)
+            done(result.text || stderr.trim(), result.text.length > 0, detected, result.page)
         })
     }
 
@@ -881,7 +905,9 @@ PlasmoidItem {
                         // Text wraps, so only vertical scrolling is needed
                         QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
                         Layout.fillWidth: true
-                        Layout.fillHeight: true
+                        // A dictionary page below takes the room left by a short translation
+                        Layout.fillHeight: root.rightpage.length === 0
+                        Layout.preferredHeight: rightPanel.implicitHeight
                         PlasmaComponents.TextArea {
                             id: rightPanel
                             wrapMode: Text.Wrap
@@ -890,6 +916,17 @@ PlasmoidItem {
                             onTextChanged: {
                                 root.righttext = rightPanel.text
                             }
+                        }
+                    }
+                    PlasmaComponents.ScrollView {
+                        visible: root.rightpage.length > 0
+                        QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        PlasmaComponents.TextArea {
+                            wrapMode: Text.Wrap
+                            readOnly: true
+                            text: root.rightpage
                         }
                     }
 
@@ -1004,6 +1041,7 @@ PlasmoidItem {
                 onTriggered: {
                     leftPanel.remove(0, leftPanel.text.length)
                     rightPanel.remove(0, rightPanel.text.length)
+                    root.rightpage = ""
                     if (root.cfg_autodetect) {
                         var copy = [i18n("Autodetect")]
                         root.detectlist = copy
@@ -1022,6 +1060,7 @@ PlasmoidItem {
                     root.swapText = root.lefttext
                     root.lefttext = root.righttext
                     root.righttext = root.swapText
+                    root.rightpage = ""
                     root.swapIndex = root.sourceIndex
                     root.sourceIndex = root.destinationIndex
                     root.destinationIndex = root.swapIndex

@@ -1,15 +1,14 @@
-# Translation template of the Translator Plasma widget.
-# Copyright (C) 2026 rcspam
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the org.kde.plasma.translator package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: org.kde.plasma.translator 6.1.4\n"
-"Report-Msgid-Bugs-To: https://github.com/rcspam/org.kde.plasma.translator/"
-"issues\n"
-"POT-Creation-Date: 2026-09-30 20:29+0200\n"
+"Project-Id-Version: org.kde.plasma.translator\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-25 15:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,101 +22,105 @@ msgstr ""
 msgid "System language (%1)"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:70
+#: contents/ui/config/configGeneral.qml:72
 msgid "General"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:317
+#: contents/ui/config/configGeneral.qml:319
 msgid "Update is available"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:345
+#: contents/ui/config/configGeneral.qml:347
 msgid "Update finished. Please restart the session."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:371
+#: contents/ui/config/configGeneral.qml:373
 msgid ""
 "Update failed. Make sure that the widget is install in user's home directory."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:422
+#: contents/ui/config/configGeneral.qml:424
 msgid "Update"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:435
+#: contents/ui/config/configGeneral.qml:437
 msgid "Changelog"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:455
+#: contents/ui/config/configGeneral.qml:457
 msgid "Translate engine:"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:488
+#: contents/ui/config/configGeneral.qml:490
 msgid "Autodetect source"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:500
+#: contents/ui/config/configGeneral.qml:502
 msgid "Native language:"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:519
+#: contents/ui/config/configGeneral.qml:521
 msgid ""
 "The selection shortcut and the Auto destination translate texts into this "
 "language. Texts already in it go into the widget's target language, or into "
 "the second language with Auto."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:532
+#: contents/ui/config/configGeneral.qml:534
 msgid "Second language:"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:551
+#: contents/ui/config/configGeneral.qml:553
 msgid ""
 "With the Auto destination, texts already in the native language are "
 "translated into this one."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:565 contents/ui/main.qml:950
+#: contents/ui/config/configGeneral.qml:563
+msgid "Show definitions and alternatives for a word or a short phrase"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:573 contents/ui/main.qml:1104
 msgid "Please make sure that at least one language is selected."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:566 contents/ui/main.qml:951
+#: contents/ui/config/configGeneral.qml:574 contents/ui/main.qml:1105
 msgid "Please make sure that at least two languages are selected."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:571
+#: contents/ui/config/configGeneral.qml:579
 msgid "Filter..."
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:609
+#: contents/ui/config/configGeneral.qml:617
 msgid "Name"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:618
+#: contents/ui/config/configGeneral.qml:626
 msgid "Native Name"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:627
+#: contents/ui/config/configGeneral.qml:635
 msgid "Code"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:749
+#: contents/ui/config/configGeneral.qml:757
 msgid "Uncheck all"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:749
+#: contents/ui/config/configGeneral.qml:757
 msgid "Check all"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:784
+#: contents/ui/config/configGeneral.qml:792
 msgid "Move up"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:806
+#: contents/ui/config/configGeneral.qml:814
 msgid "Move down"
 msgstr ""
 
-#: contents/ui/config/configGeneral.qml:909
+#: contents/ui/config/configGeneral.qml:917
 msgid "Updating..."
 msgstr ""
 
@@ -252,8 +255,8 @@ msgstr ""
 msgid "Testing…"
 msgstr ""
 
-#: contents/ui/main.qml:31 contents/ui/main.qml:453 contents/ui/main.qml:638
-#: contents/ui/main.qml:893
+#: contents/ui/main.qml:31 contents/ui/main.qml:125 contents/ui/main.qml:588
+#: contents/ui/main.qml:777 contents/ui/main.qml:1046
 msgid "Autodetect"
 msgstr ""
 
@@ -261,71 +264,71 @@ msgstr ""
 msgid "Auto (%1 / %2)"
 msgstr ""
 
-#: contents/ui/main.qml:82
+#: contents/ui/main.qml:91
 msgid "Translator"
 msgstr ""
 
-#: contents/ui/main.qml:106 contents/ui/main.qml:736
-msgid "Destination"
-msgstr ""
-
-#: contents/ui/main.qml:128
-msgid "Copy"
-msgstr ""
-
-#: contents/ui/main.qml:299 contents/ui/main.qml:316
-msgid "Unable to translate."
-msgstr ""
-
-#: contents/ui/main.qml:514
-msgid "Reading the selected text needs %1, which is not installed."
-msgstr ""
-
-#: contents/ui/main.qml:591
+#: contents/ui/main.qml:117 contents/ui/main.qml:730
 msgid "Source"
 msgstr ""
 
-#: contents/ui/main.qml:619
-msgid "Clear all (Esc)"
-msgstr ""
-
-#: contents/ui/main.qml:668 contents/ui/main.qml:806
-msgid "Listen"
-msgstr ""
-
-#: contents/ui/main.qml:683
-msgid "Paste (Ctrl+V)"
-msgstr ""
-
-#: contents/ui/main.qml:711
-msgid "Swap panels (CTRL+S)"
-msgstr ""
-
-#: contents/ui/main.qml:761
-msgid "Pin window (CTRL+P)"
-msgstr ""
-
-#: contents/ui/main.qml:819
-msgid "Copy (Ctrl+C)"
-msgstr ""
-
-#: contents/ui/main.qml:832
+#: contents/ui/main.qml:151 contents/ui/main.qml:984
 msgid "Translate"
 msgstr ""
 
-#: contents/ui/main.qml:841
+#: contents/ui/main.qml:154 contents/ui/main.qml:993
 msgid "Translate (CTRL+Enter)"
 msgstr ""
 
-#: contents/ui/main.qml:958
+#: contents/ui/main.qml:174 contents/ui/main.qml:875
+msgid "Destination"
+msgstr ""
+
+#: contents/ui/main.qml:201
+msgid "Copy"
+msgstr ""
+
+#: contents/ui/main.qml:393 contents/ui/main.qml:411
+msgid "Unable to translate."
+msgstr ""
+
+#: contents/ui/main.qml:653
+msgid "Reading the selected text needs %1, which is not installed."
+msgstr ""
+
+#: contents/ui/main.qml:758
+msgid "Clear all (Esc)"
+msgstr ""
+
+#: contents/ui/main.qml:807 contents/ui/main.qml:958
+msgid "Listen"
+msgstr ""
+
+#: contents/ui/main.qml:822
+msgid "Paste (Ctrl+V)"
+msgstr ""
+
+#: contents/ui/main.qml:850
+msgid "Swap panels (CTRL+S)"
+msgstr ""
+
+#: contents/ui/main.qml:900
+msgid "Pin window (CTRL+P)"
+msgstr ""
+
+#: contents/ui/main.qml:971
+msgid "Copy (Ctrl+C)"
+msgstr ""
+
+#: contents/ui/main.qml:1112
 msgid "Settings"
 msgstr ""
 
-#: contents/ui/main.qml:970
+#: contents/ui/main.qml:1124
 msgid "Please install translate-shell package and reboot or relog."
 msgstr ""
 
-#: contents/ui/main.qml:977
+#: contents/ui/main.qml:1131
 msgid "How to install"
 msgstr ""
 

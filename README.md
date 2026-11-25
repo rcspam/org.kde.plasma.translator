@@ -18,6 +18,7 @@ But it can now also translate **fully offline** with your own servers: [LibreTra
 - Translate the text selected in any window with a global shortcut, in the right direction
 - Auto-detect source language
 - Auto destination: into your native language, or into a second language for texts already in yours
+- Definitions and alternative translations for a word or a short phrase (Google)
 - Text-to-speech (TTS) pronunciation
 - Clipboard integration (copy/paste)
 - Swap source and destination languages
@@ -166,6 +167,7 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 
 - New: the selection window shows the text that was translated, with its language. Expand **Source** to edit the text and translate again, or to choose the source language.
 - Google and Bing give the source language with the translation: no separate detection request any more.
+- New: a word or a short phrase also shows its definitions and alternative translations, under the translation (Google; can be turned off in the General tab). Copy, Listen and Swap keep the translation alone.
 
 ### 6.1.4
 

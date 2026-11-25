@@ -47,6 +47,8 @@ Item {
     }
     property string cfg_secondLanguage
     property string cfg_secondLanguageDefault
+    property bool cfg_dictionary
+    property bool cfg_dictionaryDefault
     property var secondmodel: {
         var languages = []
         try {
@@ -555,6 +557,12 @@ Item {
             Item {
                 Layout.fillWidth: true
             }
+        }
+        // translate-shell engines; Google gives the most complete pages
+        QQC2.CheckBox {
+            text: i18n("Show definitions and alternatives for a word or a short phrase")
+            checked: configGeneral.cfg_dictionary
+            onClicked: configGeneral.cfg_dictionary = checked
         }
 
         QQC2.Label {

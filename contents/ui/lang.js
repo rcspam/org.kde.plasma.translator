@@ -20,15 +20,25 @@ function identifiedCode(output) {
     return match ? match[1] : ""
 }
 
-// Output of trans with -show-languages: the translation, then a last line
-// "[ Русский -> Français ]". source is the name of the source language in
-// that language (see endonymCodes), "" when the line is missing.
+// Output of trans with -show-languages: the translation, a line
+// "[ Русский -> Français ]", then the dictionary page if one was asked for
+// (see isLookup). source is the name of the source language in that
+// language (see endonymCodes), "" when the line is missing.
 function splitLanguages(output) {
-    var match = output.match(/^([\s\S]*?)\s*\[ (.+) -> .+ \]\s*$/)
+    var match = output.match(/^([\s\S]*?)\s*^\[ (.+) -> .+ \]$([\s\S]*)$/m)
     if (!match) {
-        return { text: output.trim(), source: "" }
+        return { text: output.trim(), source: "", page: "" }
     }
-    return { text: match[1].trim(), source: match[2] }
+    return { text: match[1].trim(), source: match[2], page: match[3].replace(/^\s*\n|\s+$/g, "") }
+}
+
+// A single line this short gets trans's dictionary page (definitions,
+// alternatives). A longer text only gets its alternatives, which repeat it.
+var lookupLimit = 40
+
+function isLookup(text) {
+    var t = text.trim()
+    return t.length > 0 && t.length <= lookupLimit && t.indexOf("\n") === -1
 }
 
 // Language codes by name in the language itself, from trans -list-all

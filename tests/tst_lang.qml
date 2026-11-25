@@ -89,12 +89,32 @@ TestCase {
               text: "", source: "English" },
             { tag: "no languages line", output: "Salut\n", text: "Salut", source: "" },
             { tag: "empty", output: "", text: "", source: "" },
+            { tag: "dictionary page after the languages", source: "Русский", text: "Bonjour",
+              output: "Bonjour\n\n[ Русский -> Français ]\n\nnom\n    (le) salut\n        привет, поклон\n\nпривет\n    Bonjour, Salut\n",
+              page: "nom\n    (le) salut\n        привет, поклон\n\nпривет\n    Bonjour, Salut" },
         ]
     }
     function test_splitLanguages(row) {
         var result = Lang.splitLanguages(row.output)
         compare(result.text, row.text)
         compare(result.source, row.source)
+        compare(result.page, row.page || "")
+    }
+
+    // A short single line gets the dictionary page
+    function test_isLookup_data() {
+        return [
+            { tag: "one word", text: "привет", expected: true },
+            { tag: "short phrase", text: "как дела", expected: true },
+            { tag: "spaces around", text: "  hello  ", expected: true },
+            { tag: "40 characters", text: "1234567890123456789012345678901234567890", expected: true },
+            { tag: "41 characters", text: "12345678901234567890123456789012345678901", expected: false },
+            { tag: "two lines", text: "hello\nworld", expected: false },
+            { tag: "empty", text: "  ", expected: false },
+        ]
+    }
+    function test_isLookup(row) {
+        compare(Lang.isLookup(row.text), row.expected)
     }
 
     // Lines of trans -list-all: code, English name, endonym

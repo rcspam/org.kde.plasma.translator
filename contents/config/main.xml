@@ -163,6 +163,10 @@
     <label>Language for texts already in the native language, with the Auto destination</label>
     <default>en</default>
   </entry>
+  <entry name="dictionary" type="Bool">
+    <label>Show trans's dictionary page (definitions, alternatives) for a word or short phrase</label>
+    <default>true</default>
+  </entry>
   <entry name="servers" type="String">
     <label>User-defined translation servers (JSON array)</label>
     <default>[]</default>
