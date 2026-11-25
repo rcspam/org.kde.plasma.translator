@@ -163,6 +163,10 @@
     <label>Language for texts already in the native language, with the Auto destination</label>
     <default>en</default>
   </entry>
+  <entry name="newSelectionWindow" type="Bool">
+    <label>Open each selection translation in a new window</label>
+    <default>false</default>
+  </entry>
   <entry name="servers" type="String">
     <label>User-defined translation servers (JSON array)</label>
     <default>[]</default>

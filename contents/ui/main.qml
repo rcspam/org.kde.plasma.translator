@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
-import QtQuick.Window
 import QtMultimedia
 import Qt.labs.platform
 import org.kde.plasma.plasmoid
@@ -14,6 +13,7 @@ import ".."
 import "servers/servers.js" as Servers
 import "shell.js" as Shell
 import "lang.js" as Lang
+import "selection.js" as Selection
 
 PlasmoidItem {
     id: root
@@ -49,12 +49,14 @@ PlasmoidItem {
     // True when the engine is a user-defined server instead of translate-shell
     readonly property bool usesServer: Servers.isServerEngine(cfg_engine)
     property bool cfg_autodetect: plasmoid.configuration.autodetect
+    // False: the selection shortcut updates the open translation window.
+    // True: each shortcut opens another window.
+    property bool cfg_newSelectionWindow: plasmoid.configuration.newSelectionWindow
     property bool indlang: false
     property bool pins: false
     property bool pack: true
     property bool actl: false
     property bool actr: false
-    property string windowtext
     property string tmpfolder: StandardPaths.writableLocation(
                                    StandardPaths.TempLocation).toString(
                                    ).replace("file://", "")
@@ -72,102 +74,9 @@ PlasmoidItem {
         id: serverClient
     }
 
-    Window {
-        id: info
-        visible: false
-        width: 430
-        height: 330
-        minimumWidth: Kirigami.Units.gridUnit * 15
-        minimumHeight: Kirigami.Units.gridUnit * 15
-        title: i18n("Translator")
-        flags: Qt.WindowStaysOnTopHint
-        color: Kirigami.Theme.backgroundColor
-        onClosing: {
-            windowtext = ""
-            root.selectionBusy = false
-            root.selectionRequest++ // drops the translation still running
-            root.clearSelection()
-        }
-
-        ColumnLayout {
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            width: parent.width
-            height: parent.height
-            anchors.top: parent.top
-            anchors.topMargin: Kirigami.Units.smallSpacing
-            anchors.bottom: parent.bottom
-            RowLayout {
-                Layout.minimumWidth: parent.width
-                width: parent.width
-                Layout.fillWidth: true
-                PlasmaComponents.Label {
-                    id: destpopup
-                    text: i18n("Destination")
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignHCenter
-                }
-                ComboBox3 {
-                    editable: true
-                    id: destinationpopup
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignHCenter
-                    model: root.langlist
-                    currentIndex: root.codelist.indexOf(nativeCode())
-                    // Only a choice made here is kept for the next texts: the
-                    // index also changes to show the language a text went to
-                    onActivated: function(index) {
-                        root.popupIndex = index
-                        falsetime.start()
-                    }
-                }
-                PlasmaComponents.ToolButton {
-                    Layout.fillWidth: false
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    icon.name: "edit-copy"
-                    enabled: windowarea.focus
-                    QQC2.ToolTip.text: i18n("Copy")
-                    QQC2.ToolTip.visible: hovered
-                    onClicked: {
-                        windowarea.selectAll()
-                        windowarea.copy()
-                        windowarea.deselect()
-                    }
-                }
-            }
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                PlasmaComponents.ScrollView {
-                    anchors.fill: parent
-                    // Text wraps, so only vertical scrolling is needed
-                    QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
-                    PlasmaComponents.TextArea {
-                        id: windowarea
-                        focus: true
-                        wrapMode: Text.Wrap
-                        readOnly: true
-                        text: root.windowtext
-                    }
-                }
-                QQC2.BusyIndicator {
-                    anchors.centerIn: parent
-                    running: root.selectionBusy
-                    visible: running
-                }
-            }
-        }
-
-        Component.onCompleted: {
-            setX(Screen.width / 2 - width / 2)
-            setY(Screen.height / 2 - height / 2)
-        }
-        QQC2.Action {
-            id: close
-            shortcut: "Esc"
-            onTriggered: {
-                info.close()
-            }
-        }
+    Component {
+        id: selectionWindowComponent
+        SelectionWindow {}
     }
 
     Plasma5Support.DataSource {
@@ -357,10 +266,11 @@ PlasmoidItem {
     readonly property string clearSelectionCmd: wayland ? "wl-copy --primary --clear" : "xsel --clear"
     // Updated each time the selection is cleared (startup, selection window closed)
     property bool selectionToolFound: true
-    // A selected text is being translated: the window is open, empty, with a spinner
-    property bool selectionBusy: false
-    // Only the answer to the latest request is shown
-    property int selectionRequest: 0
+    // Closed windows stay here so a late answer can see its request id
+    property var selectionWindows: []
+    // Set when a window's Destination menu asks for a new translation.
+    // Null for the global shortcut, which follows cfg_newSelectionWindow.
+    property var selectionTarget: null
 
     function clearSelection() {
         runner.run(root.clearSelectionCmd, function(stdout, stderr, exitCode) {
@@ -369,31 +279,51 @@ PlasmoidItem {
         })
     }
 
-    function showSelectionWindow(text) {
-        windowtext = text
-        windowarea.text = windowtext
-        info.show()
-        windowarea.focus = true
+    // preferred is the window to update (a Destination change). Otherwise the
+    // setting picks a pooled window, or a new one when the pool has none.
+    function acquireSelectionWindow(preferred) {
+        if (preferred)
+            return preferred
+        var existing = Selection.windowToReuse(selectionWindows, cfg_newSelectionWindow)
+        if (existing)
+            return existing
+        var created = selectionWindowComponent.createObject(root, {
+            host: root,
+            slot: selectionWindows.length
+        })
+        if (created) {
+            // Reassign: a var array can hand back a copy, so push() alone is lost
+            var pooled = selectionWindows.slice()
+            pooled.push(created)
+            selectionWindows = pooled
+        }
+        return created
+    }
+
+    function requestSelection(targetWindow) {
+        selectionTarget = targetWindow || null
+        falsetime.restart()
     }
 
     // Translates a selected text into the popup's language (the native one
     // by default). A text that comes back nearly unchanged was already in that
     // language: it goes to Lang.otherTarget instead.
-    function translateSelection(text) {
+    function translateSelection(text, targetWindow) {
         if (text.length === 0) {
             root.expanded = true
             return
         }
+        var win = acquireSelectionWindow(targetWindow)
+        if (!win)
+            return
         var nativeLang = nativeCode()
         var popup = root.popupIndex == -1 ? nativeLang : root.codelist[root.popupIndex]
         var favorite = root.autoDestination ? secondCode() : root.codelist[root.destinationIndex] || popup
         // LLMs take a few seconds: open the window at once
-        var request = ++root.selectionRequest
-        showSelectionWindow("")
-        root.selectionBusy = true
+        var request = win.begin()
         translateOrOther(text, "auto", popup, Lang.otherTarget(popup, favorite, nativeLang),
                          function(output, used) {
-            showTranslation(output, used, request)
+            showTranslation(win, output, used, request)
         })
     }
 
@@ -412,18 +342,17 @@ PlasmoidItem {
         })
     }
 
-    function showTranslation(output, target, request) {
-        if (request !== root.selectionRequest) {
-            return // window closed or another language chosen meanwhile
-        }
-        root.selectionBusy = false
+    function showTranslation(win, output, target, request) {
+        if (!Selection.acceptsResult(win.requestId, request))
+            return // window closed or another translation started there
         if (output.length === 0) {
-            info.hide()
+            win.busy = false
+            win.requestId = 0
+            win.hide()
             root.expanded = true
             return
         }
-        destinationpopup.currentIndex = root.codelist.indexOf(target)
-        showSelectionWindow(output)
+        win.showResult(output, target)
     }
 
     // Same call for every engine: done(output, ok, detected), output being the
@@ -501,7 +430,7 @@ PlasmoidItem {
     Connections {
         target: Plasmoid
         function onActivated() {
-            falsetime.start()
+            root.requestSelection(null)
         }
     }
     Timer {
@@ -509,14 +438,19 @@ PlasmoidItem {
         interval: 0
         repeat: false
         onTriggered: {
+            var target = root.selectionTarget
+            root.selectionTarget = null
             root.expanded = false
             if (!root.selectionToolFound) {
-                showSelectionWindow(i18n("Reading the selected text needs %1, which is not installed.",
-                                         root.selectionPackage))
+                var missing = root.acquireSelectionWindow(target)
+                if (missing) {
+                    missing.showMessage(i18n("Reading the selected text needs %1, which is not installed.",
+                                             root.selectionPackage))
+                }
                 return
             }
             runner.run(root.selectionCmd, function(stdout) {
-                translateSelection(stdout.trim())
+                root.translateSelection(stdout.trim(), target)
             })
         }
     }

@@ -59,6 +59,8 @@ Your native language is the system language unless you pick another one in the s
 
 The **Destination** menu of that window picks another language by hand. This needs **wl-clipboard** on Wayland, or **xsel** on X11 (package names are the same on the distributions above).
 
+If a translation window is still open, the shortcut brings it forward and shows the new translation there. **General** > **Selection window** can instead open a new window each time, so several results stay on screen. Changing the Destination menu always updates that same window.
+
 ### Auto destination
 
 The first entry of the widget's **Destination** menu, **Auto** (the default), does the same in the widget itself: a text is translated into your native language, or into your second language when it is already in the native one. The second language is set in **General** > **Second language** (English by default), and the menu shows both, for example "Auto (Russian / English)".
@@ -161,6 +163,10 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 | `Esc`        | Clear all text    |
 
 ## Changelog
+
+### Unreleased
+
+- Fixed: the selection shortcut brings the open translation window forward instead of looking like it did nothing. **General** > **Selection window** can instead open a new window for each translation.
 
 ### 6.1.4
 

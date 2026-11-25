@@ -47,6 +47,8 @@ Item {
     }
     property string cfg_secondLanguage
     property string cfg_secondLanguageDefault
+    property bool cfg_newSelectionWindow
+    property bool cfg_newSelectionWindowDefault
     property var secondmodel: {
         var languages = []
         try {
@@ -70,7 +72,7 @@ Item {
     property string title: i18n("General")
     // Width of the widest label left of the engine and language menus, so the menus line up
     property real labelWidth: Math.max(engineLabel.implicitWidth, nativeLabel.implicitWidth,
-                                       secondLabel.implicitWidth)
+                                       secondLabel.implicitWidth, selectionWindowLabel.implicitWidth)
     // Column widths shared between header and delegates
     property real col0Width: 40
     property real col3Width: 80
@@ -549,6 +551,28 @@ Item {
                 }
                 onActivated: configGeneral.cfg_secondLanguage = currentValue
                 QQC2.ToolTip.text: i18n("With the Auto destination, texts already in the native language are translated into this one.")
+                QQC2.ToolTip.visible: hovered
+                QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
+            Item {
+                Layout.fillWidth: true
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            QQC2.Label {
+                id: selectionWindowLabel
+                Layout.preferredWidth: configGeneral.labelWidth
+                text: i18n("Selection window:")
+            }
+            QQC2.ComboBox {
+                id: selectionWindowMode
+                model: [i18n("Bring the open window forward"), i18n("Open a new window")]
+                implicitContentWidthPolicy: QQC2.ComboBox.WidestText
+                wheelEnabled: false
+                currentIndex: configGeneral.cfg_newSelectionWindow ? 1 : 0
+                onActivated: configGeneral.cfg_newSelectionWindow = currentIndex === 1
+                QQC2.ToolTip.text: i18n("When a translation window is already open, the selection shortcut can bring it forward with the new text, or open another window and leave the previous one as it is.")
                 QQC2.ToolTip.visible: hovered
                 QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
