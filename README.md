@@ -19,6 +19,7 @@ But it can now also translate **fully offline** with your own servers: [LibreTra
 - Auto-detect source language
 - Auto destination: into your native language, or into a second language for texts already in yours
 - Text-to-speech (TTS) pronunciation
+- Dictionary page for a short single line on Google, Yandex, Bing and Apertium: pronunciation, definitions and alternative translations. On by default for a line of up to 40 characters; the switch and the limit are in the General tab. Copy, Listen and Swap keep the one-line translation
 - Clipboard integration (copy/paste)
 - Swap source and destination languages
 - Pin popup window to keep it open

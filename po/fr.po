@@ -76,6 +76,24 @@ msgid ""
 "translated into this one."
 msgstr "Avec la destination Auto, les textes déjà dans la langue maternelle sont traduits dans celle-ci."
 
+#: contents/ui/config/configGeneral.qml:567
+msgid "Dictionary for short text"
+msgstr "Dictionnaire pour les textes courts"
+
+#: contents/ui/config/configGeneral.qml:570
+msgid ""
+"A single line up to this limit shows pronunciation, definitions, and "
+"alternative translations with Google, Yandex, Bing, and Apertium."
+msgstr "Une seule ligne, dans cette limite, affiche la prononciation, les définitions et les traductions alternatives avec Google, Yandex, Bing et Apertium."
+
+#: contents/ui/config/configGeneral.qml:579
+msgid "Up to:"
+msgstr "Jusqu'à :"
+
+#: contents/ui/config/configGeneral.qml:591
+msgid "characters"
+msgstr "caractères"
+
 #: contents/ui/config/configGeneral.qml:565 contents/ui/main.qml:950
 msgid "Please make sure that at least one language is selected."
 msgstr "Sélectionnez au moins une langue."

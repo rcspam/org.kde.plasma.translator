@@ -19,4 +19,26 @@ TestCase {
     function test_quote(row) {
         compare(Shell.quote(row.text), row.expected)
     }
+
+    function test_transCommand_brief() {
+        compare(Shell.transCommand("hello", "", "ru", "google", false),
+                "trans :ru -brief -no-bidi -e google -- 'hello'")
+    }
+
+    function test_transCommand_lookup() {
+        compare(Shell.transCommand("привет", "ru", "en", "bing", true),
+                "trans ru:en -no-ansi -no-bidi -no-warn -w " + Shell.lookupWidth
+                + " -e bing -- 'привет'")
+    }
+
+    function test_transCommand_quotesText() {
+        compare(Shell.transCommand("it's", "en", "fr", "yandex", false),
+                "trans en:fr -brief -no-bidi -e yandex -- 'it'\\''s'")
+    }
+
+    function test_transCommand_dashIsNotAnOption() {
+        compare(Shell.transCommand("-n", "", "en", "google", true),
+                "trans :en -no-ansi -no-bidi -no-warn -w " + Shell.lookupWidth
+                + " -e google -- '-n'")
+    }
 }

@@ -47,6 +47,10 @@ Item {
     }
     property string cfg_secondLanguage
     property string cfg_secondLanguageDefault
+    property bool cfg_dictionary
+    property bool cfg_dictionaryDefault
+    property int cfg_dictionaryLimit
+    property int cfg_dictionaryLimitDefault
     property var secondmodel: {
         var languages = []
         try {
@@ -70,7 +74,7 @@ Item {
     property string title: i18n("General")
     // Width of the widest label left of the engine and language menus, so the menus line up
     property real labelWidth: Math.max(engineLabel.implicitWidth, nativeLabel.implicitWidth,
-                                       secondLabel.implicitWidth)
+                                       secondLabel.implicitWidth, dictionaryLabel.implicitWidth)
     // Column widths shared between header and delegates
     property real col0Width: 40
     property real col3Width: 80
@@ -554,6 +558,38 @@ Item {
             }
             Item {
                 Layout.fillWidth: true
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            QQC2.CheckBox {
+                id: dictionaryCheck
+                text: i18n("Dictionary for short text")
+                checked: configGeneral.cfg_dictionary
+                onClicked: configGeneral.cfg_dictionary = checked
+                QQC2.ToolTip.text: i18n("A single line up to this limit shows pronunciation, definitions, and alternative translations with Google, Yandex, Bing, and Apertium.")
+                QQC2.ToolTip.visible: hovered
+                QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
+            Item {
+                Layout.fillWidth: true
+            }
+            QQC2.Label {
+                id: dictionaryLabel
+                text: i18n("Up to:")
+                enabled: dictionaryCheck.checked
+            }
+            QQC2.SpinBox {
+                from: 1
+                to: 5000
+                editable: true
+                enabled: dictionaryCheck.checked
+                value: configGeneral.cfg_dictionaryLimit >= 1 ? configGeneral.cfg_dictionaryLimit : 40
+                onValueModified: configGeneral.cfg_dictionaryLimit = value
+            }
+            QQC2.Label {
+                text: i18n("characters")
+                enabled: dictionaryCheck.checked
             }
         }
 

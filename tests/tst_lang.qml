@@ -28,6 +28,11 @@ TestCase {
               translation: "Il fait beau aujourd'hui, nous pourrions faire une promenade au bord du lac.", expected: false },
             { tag: "numbers and names kept", text: "Linux kernel 6.18 update",
               translation: "Mise à jour du noyau Linux 6.18", expected: false },
+            { tag: "brief translation of one word", text: "привет", translation: "Hello", expected: false },
+            // The dictionary page repeats the source word, so it must not be
+            // passed to unchanged(): a foreign word would look already translated.
+            { tag: "dictionary page repeats the source", text: "привет",
+              translation: "привет\n(privet)\n\nHello\n\nпривет\n    Hello, Hi", expected: true },
         ]
     }
     function test_unchanged(row) {
@@ -86,5 +91,26 @@ TestCase {
     }
     function test_autoTarget(row) {
         compare(Lang.autoTarget(row.source, "ru", "en"), row.expected)
+    }
+
+    // Dictionary page: one line, no longer than the configured limit (default 40)
+    function test_isLookup_data() {
+        return [
+            { tag: "one word", text: "привет", limit: 40, expected: true },
+            { tag: "short phrase", text: "привет мир", limit: 40, expected: true },
+            { tag: "phrase with spaces", text: "как дела", limit: 40, expected: true },
+            { tag: "trimmed", text: "  hello  ", limit: 40, expected: true },
+            { tag: "exactly the limit", text: "1234567890123456789012345678901234567890", limit: 40, expected: true },
+            { tag: "one past the limit", text: "12345678901234567890123456789012345678901", limit: 40, expected: false },
+            { tag: "higher limit includes it", text: "12345678901234567890123456789012345678901", limit: 41, expected: true },
+            { tag: "second line", text: "hello\nworld", limit: 40, expected: false },
+            { tag: "carriage return", text: "hello\rworld", limit: 40, expected: false },
+            { tag: "empty", text: "   ", limit: 40, expected: false },
+            { tag: "missing text", text: undefined, limit: 40, expected: false },
+            { tag: "limit off", text: "hi", limit: 0, expected: false },
+        ]
+    }
+    function test_isLookup(row) {
+        compare(Lang.isLookup(row.text, row.limit), row.expected)
     }
 }

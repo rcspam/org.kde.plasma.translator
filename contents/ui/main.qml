@@ -49,6 +49,14 @@ PlasmoidItem {
     // True when the engine is a user-defined server instead of translate-shell
     readonly property bool usesServer: Servers.isServerEngine(cfg_engine)
     property bool cfg_autodetect: plasmoid.configuration.autodetect
+    // Dictionary page for a short single line (translate-shell engines only)
+    property bool cfg_dictionary: plasmoid.configuration.dictionary
+    property int cfg_dictionaryLimit: plasmoid.configuration.dictionaryLimit
+    // One-line translation. Copy, Listen and Swap use this, not the dictionary page
+    property string resultText: ""
+    property bool lookupShown: false
+    property string windowResult: ""
+    property bool windowLookup: false
     property bool indlang: false
     property bool pins: false
     property bool pack: true
@@ -127,11 +135,7 @@ PlasmoidItem {
                     enabled: windowarea.focus
                     QQC2.ToolTip.text: i18n("Copy")
                     QQC2.ToolTip.visible: hovered
-                    onClicked: {
-                        windowarea.selectAll()
-                        windowarea.copy()
-                        windowarea.deselect()
-                    }
+                    onClicked: copyText(root.windowResult.length > 0 ? root.windowResult : root.windowtext)
                 }
             }
             Item {
@@ -146,6 +150,7 @@ PlasmoidItem {
                         focus: true
                         wrapMode: Text.Wrap
                         readOnly: true
+                        font.family: root.windowLookup ? "monospace" : Qt.application.font.family
                         text: root.windowtext
                     }
                 }
@@ -299,8 +304,26 @@ PlasmoidItem {
         return i18n("Unable to translate.") + "\n" + serverClient.errorText(result, server)
     }
 
+    // The spin box allows 1–5000. Anything else falls back to the default.
+    function dictionaryLimit() {
+        var limit = root.cfg_dictionaryLimit
+        if (!(limit >= 1)) {
+            return 40
+        }
+        return limit > 5000 ? 5000 : limit
+    }
+
+    function copyText(text) {
+        clipboardHelper.text = text
+        clipboardHelper.selectAll()
+        clipboardHelper.copy()
+        clipboardHelper.text = ""
+    }
+
     function translate() {
         root.ind = true
+        root.lookupShown = false
+        root.resultText = ""
         var request = ++root.translateRequest
         var source = root.cfg_autodetect ? "auto" : root.codelist[root.sourceIndex]
         var target = root.codelist[root.destinationIndex]
@@ -309,11 +332,14 @@ PlasmoidItem {
             target = Lang.autoTarget(source, nativeCode(), secondCode())
             other = secondCode()
         }
-        translateOrOther(root.lefttext, source, target, other, function(output, used, ok, detected) {
+        translateOrOther(root.lefttext, source, target, other, function(output, used, ok, detected, brief) {
             if (request !== root.translateRequest) {
                 return
             }
-            root.righttext = ok || root.usesServer ? output : i18n("Unable to translate.") + "\n" + output
+            var shown = ok || root.usesServer ? output : i18n("Unable to translate.") + "\n" + output
+            root.resultText = ok ? brief : shown
+            root.lookupShown = ok && shown !== brief
+            root.righttext = shown
             root.resultCode = used
             if (ok && root.cfg_autodetect && detected) {
                 root.detectlist = [langName(detected) || detected]
@@ -389,30 +415,45 @@ PlasmoidItem {
         var favorite = root.autoDestination ? secondCode() : root.codelist[root.destinationIndex] || popup
         // LLMs take a few seconds: open the window at once
         var request = ++root.selectionRequest
+        root.windowLookup = false
+        root.windowResult = ""
         showSelectionWindow("")
         root.selectionBusy = true
         translateOrOther(text, "auto", popup, Lang.otherTarget(popup, favorite, nativeLang),
-                         function(output, used) {
-            showTranslation(output, used, request)
+                         function(output, used, ok, detected, brief) {
+            showTranslation(output, used, request, ok ? brief : output)
         })
     }
 
     // Translates into target. A text of unknown language ("auto" source) that
     // comes back nearly unchanged was already in that language: it goes to
-    // other instead. done(output, used target, ok, detected source)
+    // other instead. done(output, used target, ok, detected source, brief).
+    // output is the dictionary page for a short line, and brief is always the
+    // one-line translation (the two are equal when there is no page).
     function translateOrOther(text, source, target, other, done) {
-        translateTo(text, source, target, function(output, ok, detected) {
+        translateTo(text, source, target, false, function(output, ok, detected) {
             if (ok && source === "auto" && other !== target && Lang.unchanged(text, output)) {
-                translateTo(text, source, other, function(output2, ok2, detected2) {
-                    done(output2, other, ok2, detected2)
+                translateTo(text, source, other, false, function(output2, ok2, detected2) {
+                    withLookup(text, source, other, output2, ok2, detected2)
                 })
             } else {
-                done(output, target, ok, detected)
+                withLookup(text, source, target, output, ok, detected)
             }
         })
+        function withLookup(text, source, used, brief, ok, detected) {
+            if (!ok || root.usesServer || !root.cfg_dictionary
+                    || !Lang.isLookup(text, dictionaryLimit())) {
+                done(brief, used, ok, detected, brief)
+                return
+            }
+            translateTo(text, source, used, true, function(verbose, okVerbose) {
+                var page = okVerbose ? String(verbose).trim() : ""
+                done(page.length > 0 ? page : brief, used, ok, detected, brief)
+            })
+        }
     }
 
-    function showTranslation(output, target, request) {
+    function showTranslation(output, target, request, brief) {
         if (request !== root.selectionRequest) {
             return // window closed or another language chosen meanwhile
         }
@@ -422,14 +463,17 @@ PlasmoidItem {
             root.expanded = true
             return
         }
+        root.windowResult = brief || output
+        root.windowLookup = output !== root.windowResult
         destinationpopup.currentIndex = root.codelist.indexOf(target)
         showSelectionWindow(output)
     }
 
     // Same call for every engine: done(output, ok, detected), output being the
     // translation, or the error to show when ok is false. Only servers report
-    // the detected source language. source is a code or "auto".
-    function translateTo(text, source, target, done) {
+    // the detected source language. source is a code or "auto". lookup asks
+    // translate-shell for the dictionary page instead of the one line.
+    function translateTo(text, source, target, lookup, done) {
         if (root.usesServer) {
             translateWithServer(text, source, target, function(result, server) {
                 done(result.error ? serverFailure(result, server) : result.text, !result.error,
@@ -438,8 +482,8 @@ PlasmoidItem {
             return
         }
         var from = source === "auto" ? "" : source
-        runner.run("trans " + from + ":" + target + " -brief -e " + root.cfg_engine + " -no-bidi -- "
-                   + Shell.quote(text), function(stdout, stderr) {
+        runner.run(Shell.transCommand(text, from, target, root.cfg_engine, lookup),
+                   function(stdout, stderr) {
             var output = stdout.trim()
             done(output || stderr.trim(), output.length > 0)
         })
@@ -771,6 +815,7 @@ PlasmoidItem {
                             id: rightPanel
                             wrapMode: Text.Wrap
                             readOnly: true
+                            font.family: root.lookupShown ? "monospace" : Qt.application.font.family
                             text: root.righttext
                             onTextChanged: {
                                 root.righttext = rightPanel.text
@@ -789,17 +834,16 @@ PlasmoidItem {
                             icon.name: root.ttslist[root.targetIndex]
                                         == true ? isPlaying()
                                                   && this.act ? "media-playback-stop" : "player-volume" : "audio-volume-muted"
-                            enabled: root.ttslist[root.targetIndex]
-                                     == true ? rightPanel.text.length > 0
-                                               && rightPanel.text.length
-                                               < 201 ? true : false : false
+                            enabled: root.ttslist[root.targetIndex] == true
+                                     && root.resultText.length > 0
+                                     && root.resultText.length < 201
                             onClicked: {
                                 if (isPlaying() && this.act) {
                                     playSound.stop()
                                 } else {
                                     playSound.stop()
                                     root.actr = true
-                                    listend(root.righttext,
+                                    listend(root.resultText,
                                             root.codelist[root.targetIndex])
                                 }
                             }
@@ -811,11 +855,7 @@ PlasmoidItem {
                             Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                             icon.name: "edit-copy"
                             enabled: rightPanel.text.length > 0
-                            onClicked: {
-                                rightPanel.selectAll()
-                                rightPanel.copy()
-                                rightPanel.deselect()
-                            }
+                            onClicked: copyText(root.resultText.length > 0 ? root.resultText : root.righttext)
                             QQC2.ToolTip.text: i18n("Copy (Ctrl+C)")
                             QQC2.ToolTip.visible: hovered
                         }
@@ -889,6 +929,8 @@ PlasmoidItem {
                 onTriggered: {
                     leftPanel.remove(0, leftPanel.text.length)
                     rightPanel.remove(0, rightPanel.text.length)
+                    root.resultText = ""
+                    root.lookupShown = false
                     if (root.cfg_autodetect) {
                         var copy = [i18n("Autodetect")]
                         root.detectlist = copy
@@ -905,8 +947,10 @@ PlasmoidItem {
                          && root.sourceIndex !== root.destinationIndex
                 onTriggered: {
                     root.swapText = root.lefttext
-                    root.lefttext = root.righttext
+                    root.lefttext = root.resultText
                     root.righttext = root.swapText
+                    root.resultText = root.swapText
+                    root.lookupShown = false
                     root.swapIndex = root.sourceIndex
                     root.sourceIndex = root.destinationIndex
                     root.destinationIndex = root.swapIndex
@@ -916,11 +960,7 @@ PlasmoidItem {
             QQC2.Action {
                 id: copy
                 shortcut: "Ctrl+C"
-                onTriggered: {
-                    rightPanel.selectAll()
-                    rightPanel.copy()
-                    rightPanel.deselect()
-                }
+                onTriggered: copyText(root.resultText.length > 0 ? root.resultText : root.righttext)
             }
             QQC2.Action {
                 id: paste

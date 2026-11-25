@@ -77,6 +77,24 @@ msgid ""
 "translated into this one."
 msgstr ""
 
+#: contents/ui/config/configGeneral.qml:567
+msgid "Dictionary for short text"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:570
+msgid ""
+"A single line up to this limit shows pronunciation, definitions, and "
+"alternative translations with Google, Yandex, Bing, and Apertium."
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:579
+msgid "Up to:"
+msgstr ""
+
+#: contents/ui/config/configGeneral.qml:591
+msgid "characters"
+msgstr ""
+
 #: contents/ui/config/configGeneral.qml:565 contents/ui/main.qml:950
 msgid "Please make sure that at least one language is selected."
 msgstr ""

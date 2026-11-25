@@ -28,6 +28,18 @@ function words(text) {
     return text.toLowerCase().split(separators).filter(function(w) { return w.length > 0 })
 }
 
+// A short single line can show translate-shell's dictionary page. The limit
+// is the setting (40 by default). Length is JavaScript's, so one unit per
+// Cyrillic letter. A newline is a text, not a lookup, whatever its length.
+function isLookup(text, limit) {
+    var t = String(text == null ? "" : text).trim()
+    var max = Number(limit)
+    if (t.length === 0 || !(max > 0) || /[\r\n]/.test(t)) {
+        return false
+    }
+    return t.length <= max
+}
+
 // True when a translation kept most words of the text: the text was already
 // in the target language. Works with every engine, none has to report the
 // language it detected. Measured with TranslateGemma into French: 79 to 100%

@@ -163,6 +163,14 @@
     <label>Language for texts already in the native language, with the Auto destination</label>
     <default>en</default>
   </entry>
+  <entry name="dictionary" type="Bool">
+    <label>Show pronunciation, definitions and alternatives for a short single line</label>
+    <default>true</default>
+  </entry>
+  <entry name="dictionaryLimit" type="Int">
+    <label>Maximum length of a single line that shows the dictionary page</label>
+    <default>40</default>
+  </entry>
   <entry name="servers" type="String">
     <label>User-defined translation servers (JSON array)</label>
     <default>[]</default>
