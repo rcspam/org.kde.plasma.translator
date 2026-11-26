@@ -175,6 +175,8 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 
 ## Keyboard Shortcuts
 
+These work while the widget is open. The key that opens it, or translates the selection, is the [global shortcut](#global-shortcut).
+
 | Shortcut     | Action            |
 | ------------ | ----------------- |
 | `Ctrl+Enter` | Translate         |
