@@ -236,3 +236,7 @@ This port includes the following changes to make the widget compatible with KDE 
 - **Original author:** [Driglu4it](https://www.pling.com/p/1395666/) (Plasma 5 version)
 - **Plasma 6 port:** rcspam
 - **License:** MIT
+
+## Technical notes
+
+The shortcut that translates the selection is registered with KWin and delivered through plasmashell. `plasmoidviewer` runs the widget in its own process, so that shortcut does nothing there. Add the widget to a panel or the desktop to use it. The shortcut that opens the widget is Plasma's normal activation shortcut and works in `plasmoidviewer`.

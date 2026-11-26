@@ -15,6 +15,7 @@ import "servers/servers.js" as Servers
 import "shell.js" as Shell
 import "lang.js" as Lang
 import "shortcut.js" as Shortcut
+import "migrate.js" as Migrate
 
 PlasmoidItem {
     id: root
@@ -638,7 +639,7 @@ PlasmoidItem {
         if (plasmoid.configuration.selectionShortcutMigrated) {
             return
         }
-        var plan = Shortcut.migratedShortcuts({
+        var plan = Migrate.migratedShortcuts({
             migrated: false,
             selectionShortcut: plasmoid.configuration.selectionShortcut,
             legacyOpenShortcut: plasmoid.configuration.openShortcut,
@@ -660,11 +661,8 @@ PlasmoidItem {
         root.selectionRequestSeen = plasmoid.configuration.selectionRequest
     }
 
-    // The Shortcuts page can register one shortcut, and Plasma opens the widget
-    // for it. KWin's registerShortcut owns the selection shortcut and, when it
-    // is pressed, asks plasmashell to bump selectionRequest. That reaches a
-    // widget on a panel or the desktop. plasmoidviewer is not plasmashell, so
-    // the same key does nothing there. Without KWin, it does nothing at all.
+    // KWin owns the selection shortcut and asks plasmashell to bump
+    // selectionRequest. Without KWin, that shortcut does nothing.
     function updateSelectionShortcut() {
         if (!runner) {
             return

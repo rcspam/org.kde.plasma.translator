@@ -1,6 +1,7 @@
 import QtQuick
 import QtTest
 import "../contents/ui/shortcut.js" as Shortcut
+import "../contents/ui/migrate.js" as Migrate
 
 TestCase {
     name: "Shortcut"
@@ -105,7 +106,7 @@ TestCase {
         ]
     }
     function test_migratedShortcuts(row) {
-        var plan = Shortcut.migratedShortcuts(row.state)
+        var plan = Migrate.migratedShortcuts(row.state)
         compare(plan.selectionShortcut, row.selection)
         compare(plan.globalShortcut, row.global)
     }
