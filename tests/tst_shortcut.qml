@@ -44,16 +44,17 @@ TestCase {
     }
 
     function test_actionName_isPerApplet() {
-        compare(Shortcut.actionName(42), "org.kde.plasma.translator.open.42")
-        compare(Shortcut.actionName("7"), "org.kde.plasma.translator.open.7")
+        compare(Shortcut.actionName(42), "org.kde.plasma.translator.selection.42")
+        compare(Shortcut.actionName("7"), "org.kde.plasma.translator.selection.7")
+        compare(Shortcut.legacyActionName(42), "org.kde.plasma.translator.open.42")
         // Not a number: still one safe token, never script text
-        compare(Shortcut.actionName("1); evil("), "org.kde.plasma.translator.open.-1")
+        compare(Shortcut.actionName("1); evil("), "org.kde.plasma.translator.selection.-1")
     }
 
     function test_plasmashellScript_bumpsThisApplet() {
         var script = Shortcut.plasmashellScript(42)
         verify(script.indexOf("var id = 42") !== -1)
-        verify(script.indexOf("writeConfig(\"openRequest\"") !== -1)
+        verify(script.indexOf("writeConfig(\"selectionRequest\"") !== -1)
         verify(script.indexOf("panels()") !== -1)
         verify(script.indexOf("desktops()") !== -1)
         // The system tray is its own containment, not a desktop
@@ -70,7 +71,7 @@ TestCase {
     function test_kwinScript_registersAndEscapes() {
         var script = Shortcut.kwinScript(7, "Meta+T", "Say \"hi\"")
         verify(script.indexOf("registerShortcut(") === 0)
-        verify(script.indexOf("\"org.kde.plasma.translator.open.7\"") !== -1)
+        verify(script.indexOf("\"org.kde.plasma.translator.selection.7\"") !== -1)
         verify(script.indexOf("\"Meta+T\"") !== -1)
         verify(script.indexOf("Say \\\"hi\\\"") !== -1)
         verify(script.indexOf("evaluateScript") !== -1)
@@ -78,19 +79,21 @@ TestCase {
     }
 
     function test_syncCommand_emptyUnloadsOnly() {
-        var cmd = Shortcut.syncCommand(3, "", "Open Translator", "/tmp/open.js")
+        var cmd = Shortcut.syncCommand(3, "", "Translate the selection", "/tmp/open.js")
         verify(cmd.indexOf("unloadScript string:org.kde.plasma.translator.open.3") !== -1)
+        verify(cmd.indexOf("unloadScript string:org.kde.plasma.translator.selection.3") !== -1)
         compare(cmd.indexOf("setForeignShortcut"), -1)
         // "unloadScript" starts with "un" and then "loadScript"
         compare(cmd.indexOf("Scripting.loadScript"), -1)
     }
 
     function test_syncCommand_forcesTheKey() {
-        var cmd = Shortcut.syncCommand(3, "Meta+T", "Open Translator", "/tmp/my open.js")
+        var cmd = Shortcut.syncCommand(3, "Meta+T", "Translate the selection", "/tmp/my open.js")
         verify(cmd.indexOf("unloadScript string:org.kde.plasma.translator.open.3") !== -1)
+        verify(cmd.indexOf("unloadScript string:org.kde.plasma.translator.selection.3") !== -1)
         verify(cmd.indexOf("Scripting.loadScript string:") !== -1)
         verify(cmd.indexOf("org.kde.KGlobalAccel.setForeignShortcut") !== -1)
-        verify(cmd.indexOf("array:string:\"kwin\",\"org.kde.plasma.translator.open.3\",\"KWin\",\"Open Translator\"") !== -1)
+        verify(cmd.indexOf("array:string:\"kwin\",\"org.kde.plasma.translator.selection.3\",\"KWin\",\"Translate Selection\"") !== -1)
         verify(cmd.indexOf("array:int32:" + 0x10000054) !== -1)
         // The path is one shell word, so the space cannot start a new command
         verify(cmd.indexOf("'/tmp/my open.js'") !== -1)
@@ -98,8 +101,39 @@ TestCase {
     }
 
     function test_syncCommand_unknownShortcutUnloadsOnly() {
-        var cmd = Shortcut.syncCommand(3, "Ctrl+NotAKey", "Open Translator", "/tmp/open.js")
+        var cmd = Shortcut.syncCommand(3, "Ctrl+NotAKey", "Translate the selection", "/tmp/open.js")
         compare(cmd.indexOf("setForeignShortcut"), -1)
         compare(cmd.indexOf("Scripting.loadScript"), -1)
+    }
+
+    function test_migratedShortcuts_data() {
+        return [
+            { tag: "upgrade keeps the shortcuts page key",
+              state: { migrated: false, selectionShortcut: "", legacyOpenShortcut: "", globalShortcut: "Meta+T" },
+              selection: "Meta+T", global: "" },
+            { tag: "previous open shortcut moves to the shortcuts page",
+              state: { migrated: false, selectionShortcut: "", legacyOpenShortcut: "Meta+O", globalShortcut: "Meta+T" },
+              selection: "Meta+T", global: "Meta+O" },
+            { tag: "only an open shortcut was set",
+              state: { migrated: false, selectionShortcut: "", legacyOpenShortcut: "Meta+O", globalShortcut: "" },
+              selection: "", global: "Meta+O" },
+            { tag: "fresh install leaves the shortcuts page alone",
+              state: { migrated: false, selectionShortcut: "", legacyOpenShortcut: "", globalShortcut: "" },
+              selection: "", global: null },
+            { tag: "the same key keeps translating",
+              state: { migrated: false, selectionShortcut: "", legacyOpenShortcut: "Meta+T", globalShortcut: "Meta+T" },
+              selection: "Meta+T", global: "" },
+            { tag: "already migrated",
+              state: { migrated: true, selectionShortcut: "Ctrl+Alt+T", legacyOpenShortcut: "Meta+O", globalShortcut: "Meta+Space" },
+              selection: "Ctrl+Alt+T", global: null },
+            { tag: "key sequence object",
+              state: { migrated: false, selectionShortcut: "", legacyOpenShortcut: "", globalShortcut: { toString: function() { return "Ctrl+Alt+T" } } },
+              selection: "Ctrl+Alt+T", global: "" }
+        ]
+    }
+    function test_migratedShortcuts(row) {
+        var plan = Shortcut.migratedShortcuts(row.state)
+        compare(plan.selectionShortcut, row.selection)
+        compare(plan.globalShortcut, row.global)
     }
 }

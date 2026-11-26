@@ -5,8 +5,16 @@
 // this name, on X11 and on Wayland.
 var kwinComponent = "kwin"
 
+// Shown by setForeignShortcut. registerShortcut gets the translated label.
+var selectionActionText = "Translate Selection"
+
 // One action per applet, so two widgets on the panel can have two shortcuts.
 function actionName(appletId) {
+    return "org.kde.plasma.translator.selection." + numericId(appletId)
+}
+
+// The previous build registered the open-widget shortcut under this name.
+function legacyActionName(appletId) {
     return "org.kde.plasma.translator.open." + numericId(appletId)
 }
 
@@ -139,18 +147,18 @@ function sequenceText(sequence) {
     return ""
 }
 
-// Runs inside plasmashell. Bumps this applet's openRequest, which the widget
-// watches. Panels and desktops first; then every containment id, so a widget
-// kept in the system tray (its own containment, not a desktop) is found too.
+// Runs inside plasmashell. Bumps this applet's selectionRequest, which the
+// widget watches. Panels and desktops first; then every containment id, so a
+// widget kept in the system tray (its own containment, not a desktop) is found too.
 function plasmashellScript(appletId) {
     var id = numericId(appletId)
     return "(function() {\n"
         + "    var id = " + id + "\n"
         + "    function bump(w) {\n"
         + "        if (!w || !w.writeConfig || Number(w.id) !== id) return false\n"
-        + "        var n = Number(w.readConfig(\"openRequest\", 0)) || 0\n"
+        + "        var n = Number(w.readConfig(\"selectionRequest\", 0)) || 0\n"
         + "        if (n >= 1000000000) n = 0\n"
-        + "        w.writeConfig(\"openRequest\", n + 1)\n"
+        + "        w.writeConfig(\"selectionRequest\", n + 1)\n"
         + "        return true\n"
         + "    }\n"
         + "    function consider(c) {\n"
@@ -186,7 +194,7 @@ function plasmashellScript(appletId) {
 
 function kwinScript(appletId, shortcutText, label) {
     var name = actionName(appletId)
-    var text = label || "Open Translator"
+    var text = label || selectionActionText
     return "registerShortcut(" + JSON.stringify(name) + ", " + JSON.stringify(text) + ", "
         + JSON.stringify(String(shortcutText || "")) + ", function() {\n"
         + "    callDBus(\"org.kde.plasmashell\", \"/PlasmaShell\", \"org.kde.PlasmaShell\", \"evaluateScript\", "
@@ -201,7 +209,10 @@ function kwinScript(appletId, shortcutText, label) {
 function syncCommand(appletId, shortcutText, label, scriptFile) {
     var name = actionName(appletId)
     var kwin = "dbus-send --session --print-reply --dest=org.kde.KWin /Scripting org.kde.kwin.Scripting."
-    var cmd = kwin + "unloadScript string:" + name + " >/dev/null 2>&1"
+    // The old action name too, so a shortcut registered by the previous build
+    // does not stay behind.
+    var cmd = kwin + "unloadScript string:" + legacyActionName(appletId) + " >/dev/null 2>&1"
+        + "; " + kwin + "unloadScript string:" + name + " >/dev/null 2>&1"
     var code = keyCode(shortcutText)
     if (!code) {
         return cmd
@@ -211,7 +222,30 @@ function syncCommand(appletId, shortcutText, label, scriptFile) {
         + " && " + kwin + "loadScript string:" + Shell.quote(scriptFile) + " string:" + name + " >/dev/null"
         + " && " + kwin + "start >/dev/null"
         + " && dbus-send --session --print-reply --dest=org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel.setForeignShortcut"
-        + " array:string:\"" + kwinComponent + "\",\"" + name + "\",\"KWin\",\"Open Translator\""
+        + " array:string:\"" + kwinComponent + "\",\"" + name + "\",\"KWin\",\"" + selectionActionText + "\""
         + " array:int32:" + (code | 0)
     return cmd
+}
+
+// One-time swap. The Shortcuts page used to translate the selection; it now
+// opens the widget, and the selection shortcut lives in the widget's own
+// config. globalShortcut is null when the Shortcuts page must be left as it is.
+function migratedShortcuts(state) {
+    var saved = sequenceText(state.selectionShortcut).trim()
+    if (state.migrated) {
+        return { selectionShortcut: saved, globalShortcut: null }
+    }
+    var globalText = sequenceText(state.globalShortcut).trim()
+    var legacy = sequenceText(state.legacyOpenShortcut).trim()
+    var selection = saved || globalText
+    var nextGlobal = legacy
+    // One key cannot both open the widget and translate. The key that used to
+    // sit on the Shortcuts page keeps translating.
+    if (nextGlobal && nextGlobal === selection && !saved) {
+        nextGlobal = ""
+    }
+    return {
+        selectionShortcut: selection,
+        globalShortcut: nextGlobal === globalText ? null : nextGlobal
+    }
 }

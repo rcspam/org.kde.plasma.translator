@@ -171,13 +171,22 @@
     <label>Keep the selection window above other windows</label>
     <default>true</default>
   </entry>
-  <entry name="openShortcut" type="String">
-    <label>Shortcut that opens the widget and focuses the input (empty: none)</label>
+  <entry name="selectionShortcut" type="String">
+    <label>Shortcut that translates the selection (empty: none)</label>
     <default></default>
   </entry>
-  <entry name="openRequest" type="Int">
-    <label>Bumped by the open shortcut so the widget opens and focuses the input</label>
+  <entry name="selectionRequest" type="Int">
+    <label>Bumped by the selection shortcut so the widget translates the selection</label>
     <default>0</default>
+  </entry>
+  <entry name="selectionShortcutMigrated" type="Bool">
+    <label>The shortcut previously set on the Shortcuts page has been copied to the selection shortcut</label>
+    <default>false</default>
+  </entry>
+  <!-- Kept so an upgrade can read a shortcut saved by the previous build, then clear it. -->
+  <entry name="openShortcut" type="String">
+    <label>Unused. Previously the shortcut that opened the widget.</label>
+    <default></default>
   </entry>
   <entry name="servers" type="String">
     <label>User-defined translation servers (JSON array)</label>

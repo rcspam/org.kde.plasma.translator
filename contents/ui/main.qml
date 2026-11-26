@@ -67,14 +67,14 @@ PlasmoidItem {
     property bool cfg_dictionary: plasmoid.configuration.dictionary
     property bool cfg_keepAbove: plasmoid.configuration.keepAbove
     onCfg_keepAboveChanged: updateKeepAbove()
-    // Second global shortcut. The activation shortcut translates the selection.
-    property string cfg_openShortcut: plasmoid.configuration.openShortcut
-    onCfg_openShortcutChanged: updateOpenShortcut()
-    // The open shortcut bumps this. The value at startup must not open the widget.
-    property int openRequestSeen: 0
-    property bool openRequestReady: false
-    // Last values the change handlers applied. Bumping openRequest reloads the
-    // whole config group, and these handlers would otherwise run again.
+    // Translates the selection. The Shortcuts page opens the widget instead.
+    property string cfg_selectionShortcut: plasmoid.configuration.selectionShortcut
+    onCfg_selectionShortcutChanged: updateSelectionShortcut()
+    // The selection shortcut bumps this. The value at startup must not translate.
+    property int selectionRequestSeen: 0
+    property bool selectionRequestReady: false
+    // Last values the change handlers applied. Bumping selectionRequest reloads
+    // the whole config group, and these handlers would otherwise run again.
     property string appliedLanguages: ""
     property string appliedEngine: ""
     property string appliedServers: ""
@@ -619,16 +619,42 @@ PlasmoidItem {
             root.endonymCodes = Lang.endonymCodes(stdout || "")
         })
         updateKeepAbove()
-        root.noteOpenRequest()
+        root.migrateShortcuts()
+        root.noteSelectionRequest()
         root.appliedLanguages = plasmoid.configuration.languages
         root.appliedEngine = plasmoid.configuration.engine
         root.appliedServers = plasmoid.configuration.servers
-        root.openRequestReady = true
-        updateOpenShortcut()
+        root.selectionRequestReady = true
+        updateSelectionShortcut()
     }
 
-    function noteOpenRequest() {
-        root.openRequestSeen = plasmoid.configuration.openRequest
+    // The Shortcuts page used to translate the selection. Copy that key into
+    // the General setting once, and put a previously configured open shortcut
+    // onto the Shortcuts page.
+    function migrateShortcuts() {
+        if (plasmoid.configuration.selectionShortcutMigrated) {
+            return
+        }
+        var plan = Shortcut.migratedShortcuts({
+            migrated: false,
+            selectionShortcut: plasmoid.configuration.selectionShortcut,
+            legacyOpenShortcut: plasmoid.configuration.openShortcut,
+            globalShortcut: Plasmoid.globalShortcut
+        })
+        if ((plasmoid.configuration.selectionShortcut || "") !== plan.selectionShortcut) {
+            plasmoid.configuration.selectionShortcut = plan.selectionShortcut
+        }
+        if (plan.globalShortcut !== null) {
+            Plasmoid.globalShortcut = plan.globalShortcut
+        }
+        plasmoid.configuration.selectionShortcutMigrated = true
+        if (plasmoid.configuration.openShortcut) {
+            plasmoid.configuration.openShortcut = ""
+        }
+    }
+
+    function noteSelectionRequest() {
+        root.selectionRequestSeen = plasmoid.configuration.selectionRequest
     }
 
     // Same result as clicking the icon: the widget is open and the input has
@@ -639,16 +665,16 @@ PlasmoidItem {
         root.openRequested()
     }
 
-    // Plasmashell can register one activation shortcut, and that one translates
-    // the selection. KWin registers this second shortcut and, when it is
-    // pressed, bumps openRequest on this applet. Without KWin, nothing happens.
-    function updateOpenShortcut() {
+    // The Shortcuts page can register one shortcut, and that one opens the
+    // widget. KWin registers the selection shortcut and, when it is pressed,
+    // bumps selectionRequest on this applet. Without KWin, nothing happens.
+    function updateSelectionShortcut() {
         if (!runner) {
             return
         }
         var file = root.tmpfolder + "/" + Shortcut.actionName(plasmoid.id) + ".js"
-        runner.run(Shortcut.syncCommand(plasmoid.id, root.cfg_openShortcut,
-                                        i18n("Open Translator"), file), function() {})
+        runner.run(Shortcut.syncCommand(plasmoid.id, root.cfg_selectionShortcut,
+                                        i18n("Translate the selection"), file), function() {})
     }
 
     // Keeps the selection window above the others. Qt does not pass
@@ -701,12 +727,12 @@ PlasmoidItem {
             root.appliedServers = next
             reloadKeepingSelection()
         }
-        function onOpenRequestChanged() {
-            if (!root.openRequestReady || plasmoid.configuration.openRequest === root.openRequestSeen) {
+        function onSelectionRequestChanged() {
+            if (!root.selectionRequestReady || plasmoid.configuration.selectionRequest === root.selectionRequestSeen) {
                 return
             }
-            root.noteOpenRequest()
-            root.openAndFocus()
+            root.noteSelectionRequest()
+            falsetime.start()
         }
     }
 
@@ -727,7 +753,7 @@ PlasmoidItem {
     Connections {
         target: Plasmoid
         function onActivated() {
-            falsetime.start()
+            root.openAndFocus()
         }
     }
     Timer {
