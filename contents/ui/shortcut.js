@@ -1,5 +1,6 @@
 .pragma library
 .import "shell.js" as Shell
+.import "selection-bump.js" as Bump
 
 // Plasma gives a widget one global shortcut, Plasmoid.globalShortcut. This
 // file registers a second one with KWin. When it is pressed, KWin asks
@@ -43,35 +44,8 @@ function sequenceText(sequence) {
     }
 }
 
-// Runs inside plasmashell. A tray applet lives in the tray's containment.
 function plasmashellScript(appletId) {
-    var id = numericId(appletId)
-    return `(function () {
-var id = ${id}
-function bump(w) {
-    if (!w || Number(w.id) !== id || !w.writeConfig) return false
-    w.currentConfigGroup = ['General']
-    var n = Number(w.readConfig('selectionRequest', 0)) || 0
-    w.writeConfig('selectionRequest', n < 1000000000 ? n + 1 : 1)
-    return true
-}
-function scan(c) {
-    if (!c || !c.widgets) return false
-    var mine = c.widgets('org.kde.plasma.translator') || []
-    for (var i = 0; i < mine.length; i++) if (bump(mine[i])) return true
-    var trays = c.widgets('org.kde.plasma.systemtray') || []
-    for (var j = 0; j < trays.length; j++) {
-        var trayId = Number(trays[j].readConfig('SystrayContainmentId'))
-        if (trayId && scan(desktopById(trayId))) return true
-    }
-    return false
-}
-function walk(items) {
-    for (var i = 0; items && i < items.length; i++) if (scan(items[i])) return true
-}
-walk(panels()) || walk(desktops())
-})()
-`
+    return Bump.source.replace("__ID__", String(numericId(appletId)))
 }
 
 function kwinScript(appletId, shortcutText, label) {

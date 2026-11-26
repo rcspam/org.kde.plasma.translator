@@ -110,4 +110,24 @@ TestCase {
         compare(plan.selectionShortcut, row.selection)
         compare(plan.globalShortcut, row.global)
     }
+
+    function test_apply_writesTheAppletOnce() {
+        var config = {
+            selectionShortcut: "",
+            openShortcut: "Meta+O",
+            selectionShortcutMigrated: false
+        }
+        var applet = {
+            configuration: config,
+            globalShortcut: "Meta+T"
+        }
+        Migrate.apply(applet)
+        compare(config.selectionShortcut, "Meta+T")
+        compare(applet.globalShortcut, "Meta+O")
+        compare(config.selectionShortcutMigrated, true)
+        compare(config.openShortcut, "")
+        config.selectionShortcut = "changed"
+        Migrate.apply(applet)
+        compare(config.selectionShortcut, "changed")
+    }
 }

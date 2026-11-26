@@ -623,38 +623,13 @@ PlasmoidItem {
             root.endonymCodes = Lang.endonymCodes(stdout || "")
         })
         updateKeepAbove()
-        root.migrateShortcuts()
+        Migrate.apply(plasmoid)
         root.noteSelectionRequest()
         root.appliedLanguages = plasmoid.configuration.languages
         root.appliedEngine = plasmoid.configuration.engine
         root.appliedServers = plasmoid.configuration.servers
         root.selectionRequestReady = true
         updateSelectionShortcut()
-    }
-
-    // The Shortcuts page used to translate the selection. Copy that key into
-    // the General setting once, and put a previously configured open shortcut
-    // onto the Shortcuts page.
-    function migrateShortcuts() {
-        if (plasmoid.configuration.selectionShortcutMigrated) {
-            return
-        }
-        var plan = Migrate.migratedShortcuts({
-            migrated: false,
-            selectionShortcut: plasmoid.configuration.selectionShortcut,
-            legacyOpenShortcut: plasmoid.configuration.openShortcut,
-            globalShortcut: Plasmoid.globalShortcut
-        })
-        if ((plasmoid.configuration.selectionShortcut || "") !== plan.selectionShortcut) {
-            plasmoid.configuration.selectionShortcut = plan.selectionShortcut
-        }
-        if (plan.globalShortcut !== null) {
-            Plasmoid.globalShortcut = plan.globalShortcut
-        }
-        plasmoid.configuration.selectionShortcutMigrated = true
-        if (plasmoid.configuration.openShortcut) {
-            plasmoid.configuration.openShortcut = ""
-        }
     }
 
     function noteSelectionRequest() {

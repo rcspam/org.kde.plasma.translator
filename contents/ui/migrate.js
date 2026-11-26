@@ -23,3 +23,28 @@ function migratedShortcuts(state) {
         globalShortcut: nextGlobal === globalText ? null : nextGlobal
     }
 }
+
+// Writes the one-time swap into the applet. plasmoid.globalShortcut is the
+// Shortcuts page key.
+function apply(plasmoid) {
+    var config = plasmoid.configuration
+    if (config.selectionShortcutMigrated) {
+        return
+    }
+    var plan = migratedShortcuts({
+        migrated: false,
+        selectionShortcut: config.selectionShortcut,
+        legacyOpenShortcut: config.openShortcut,
+        globalShortcut: plasmoid.globalShortcut
+    })
+    if ((config.selectionShortcut || "") !== plan.selectionShortcut) {
+        config.selectionShortcut = plan.selectionShortcut
+    }
+    if (plan.globalShortcut !== null) {
+        plasmoid.globalShortcut = plan.globalShortcut
+    }
+    config.selectionShortcutMigrated = true
+    if (config.openShortcut) {
+        config.openShortcut = ""
+    }
+}
