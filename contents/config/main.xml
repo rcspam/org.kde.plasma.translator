@@ -171,6 +171,10 @@
     <label>Keep the selection window above other windows</label>
     <default>true</default>
   </entry>
+  <entry name="shortcutOpensWidget" type="Bool">
+    <label>A single press of the global shortcut opens the widget, a double press translates the selection</label>
+    <default>true</default>
+  </entry>
   <entry name="servers" type="String">
     <label>User-defined translation servers (JSON array)</label>
     <default>[]</default>

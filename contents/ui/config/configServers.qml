@@ -36,6 +36,8 @@ Item {
     property bool cfg_dictionaryDefault
     property bool cfg_keepAbove
     property bool cfg_keepAboveDefault
+    property bool cfg_shortcutOpensWidget
+    property bool cfg_shortcutOpensWidgetDefault
     property string title: i18n("Servers")
 
     // Edited in place; cfg_servers holds its JSON for saving. Form fields are

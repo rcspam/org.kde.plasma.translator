@@ -66,6 +66,13 @@ PlasmoidItem {
     property bool cfg_dictionary: plasmoid.configuration.dictionary
     property bool cfg_keepAbove: plasmoid.configuration.keepAbove
     onCfg_keepAboveChanged: updateKeepAbove()
+    property bool cfg_shortcutOpensWidget: plasmoid.configuration.shortcutOpensWidget
+    // The global shortcut does one thing on a press and the other on a double
+    // press. Plasma still expands the widget on each press, so onActivated
+    // undoes that. Without toggling, Plasma only ever opens it.
+    activationTogglesExpanded: false
+    property double expandedAt: 0
+    onExpandedChanged: root.expandedAt = Date.now()
     property string tmpfolder: StandardPaths.writableLocation(
                                    StandardPaths.TempLocation).toString(
                                    ).replace("file://", "")
@@ -662,8 +669,27 @@ PlasmoidItem {
     Connections {
         target: Plasmoid
         function onActivated() {
-            falsetime.start()
+            // Plasma's own handler may run before or after this one. Opened
+            // within the last few milliseconds means Plasma did it.
+            var wasOpen = root.expanded && Date.now() - root.expandedAt > 50
+            Qt.callLater(function() {
+                root.expanded = wasOpen
+                shortcutPresses.press()
+            })
         }
+    }
+    // Press: open the widget, twice: translate the selection, or the other
+    // way round (General > Global shortcut)
+    property ShortcutPresses shortcutPresses: ShortcutPresses {
+        onSinglePress: root.cfg_shortcutOpensWidget ? root.toggleWidget() : falsetime.start()
+        onDoublePress: root.cfg_shortcutOpensWidget ? falsetime.start() : root.toggleWidget()
+    }
+    // Same as a click on the icon. The selection window would hide the widget.
+    function toggleWidget() {
+        if (!root.expanded) {
+            info.hide()
+        }
+        root.expanded = !root.expanded
     }
     Timer {
         id: falsetime

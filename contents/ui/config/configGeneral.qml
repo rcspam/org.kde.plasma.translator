@@ -51,6 +51,8 @@ Item {
     property bool cfg_dictionaryDefault
     property bool cfg_keepAbove
     property bool cfg_keepAboveDefault
+    property bool cfg_shortcutOpensWidget
+    property bool cfg_shortcutOpensWidgetDefault
     property var secondmodel: {
         var languages = []
         try {
@@ -553,6 +555,27 @@ Item {
                 }
                 onActivated: configGeneral.cfg_secondLanguage = currentValue
                 QQC2.ToolTip.text: i18n("With the Auto destination, texts already in the native language are translated into this one.")
+                QQC2.ToolTip.visible: hovered
+                QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
+            Item {
+                Layout.fillWidth: true
+            }
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            QQC2.Label {
+                Layout.preferredWidth: configGeneral.labelWidth
+                text: i18n("Global shortcut:")
+            }
+            QQC2.ComboBox {
+                model: [i18n("Press: open the widget. Twice: translate the selection"),
+                        i18n("Press: translate the selection. Twice: open the widget")]
+                implicitContentWidthPolicy: QQC2.ComboBox.WidestText
+                wheelEnabled: false
+                currentIndex: configGeneral.cfg_shortcutOpensWidget ? 0 : 1
+                onActivated: configGeneral.cfg_shortcutOpensWidget = currentIndex === 0
+                QQC2.ToolTip.text: i18n("The key itself is set on the Keyboard Shortcuts page.")
                 QQC2.ToolTip.visible: hovered
                 QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
             }

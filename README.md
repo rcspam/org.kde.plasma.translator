@@ -15,7 +15,7 @@ But it can now also translate **fully offline** with your own servers: [LibreTra
 - Translate **fully offline** with your own servers: LibreTranslate, or LLMs through Ollama or LM Studio (see below)
 - Online services too: **Google**, **Yandex**, **Bing** and **Apertium** through translate-shell, DeepL, or any OpenAI-compatible API
 - Translate text between 160+ languages
-- Translate the text selected in any window with a global shortcut, in the right direction
+- Translate the text selected in any window with a global shortcut, in the right direction: press it twice (a single press opens the widget to type)
 - Auto-detect source language
 - Auto destination: into your native language, or into a second language for texts already in yours
 - Definitions and alternative translations for a word or a short phrase (Google)
@@ -51,7 +51,9 @@ sudo zypper install translate-shell
 
 ### Translate the selected text
 
-Give the widget a global shortcut (right click > Configure > Keyboard Shortcuts). Pressing it translates the text currently selected in any window, and shows the result in a small window:
+Give the widget a global shortcut (right click > Configure > Keyboard Shortcuts). Pressing it opens the widget with the cursor in the input, to type a text yourself. Pressing it twice translates the text currently selected in any window, and shows the result in a small window. **General** > **Global shortcut** swaps the two: a press translates the selection, two presses open the widget. Whichever comes on a single press starts after a short delay (the double-click interval), the time to tell it from a double press.
+
+The selected text is translated this way:
 
 - a text in any other language is translated into your native language
 - a text already in your native language is translated into the target language chosen in the widget (the second language when that target is **Auto**)
