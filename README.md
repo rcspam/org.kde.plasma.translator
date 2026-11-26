@@ -41,7 +41,7 @@ Nothing leaves your computer. Pick one:
 
 Then add the server in the **Servers** tab and pick it as engine in the **General** tab.
 
-### Install translate-shell
+### Install translate-shell for online translation
 
 ```bash
 # Arch Linux / Manjaro
