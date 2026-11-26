@@ -165,6 +165,11 @@ kpackagetool6 -t Plasma/Applet -r org.kde.plasma.translator
 
 ## Changelog
 
+### 6.3.0
+
+- New: the global shortcut opens the widget with the cursor in the input, to type a text without the mouse. Press it twice to translate the selection. **General** > **Global shortcut** swaps the two, for those who want the selection on a single press (idea from MurzNN, PR 11).
+- Changed: a shortcut set before this version now opens the widget on a single press. Press it twice, or swap the two in the General tab, to translate the selection as before.
+
 ### 6.2.0
 
 - New: the selection window shows the text that was translated, with its language. Expand **Source** to edit the text and translate again, or to choose the source language.
