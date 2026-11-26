@@ -667,9 +667,16 @@ PlasmoidItem {
         if (!runner) {
             return
         }
-        var file = root.tmpfolder + "/" + Shortcut.scriptName(plasmoid.id) + ".js"
-        runner.run(Shortcut.syncCommand(plasmoid.id, root.cfg_selectionShortcut,
-                                        i18n("Translate the selection"), file), function() {})
+        var text = root.cfg_selectionShortcut || ""
+        var next = String(text).trim() ? Shortcut.actionName(plasmoid.id, text) : ""
+        var previous = plasmoid.configuration.selectionScript || ""
+        var file = root.tmpfolder + "/" + (next || Shortcut.scriptName(plasmoid.id)) + ".js"
+        runner.run(Shortcut.syncCommand(plasmoid.id, text, i18n("Translate the selection"), file, previous),
+                   function(stdout, stderr, exitCode) {
+            if (exitCode === 0 && plasmoid.configuration.selectionScript !== next) {
+                plasmoid.configuration.selectionScript = next
+            }
+        })
     }
 
     // Keeps the selection window above the others. Qt does not pass

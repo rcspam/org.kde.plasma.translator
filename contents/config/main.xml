@@ -179,6 +179,10 @@
     <label>Bumped by the selection shortcut so the widget translates the selection</label>
     <default>0</default>
   </entry>
+  <entry name="selectionScript" type="String">
+    <label>KWin script that currently owns the selection shortcut</label>
+    <default></default>
+  </entry>
   <entry name="selectionShortcutMigrated" type="Bool">
     <label>The shortcut previously set on the Shortcuts page has been copied to the selection shortcut</label>
     <default>false</default>

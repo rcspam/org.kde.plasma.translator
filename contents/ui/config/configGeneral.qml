@@ -58,6 +58,8 @@ Item {
     // Bumped by the shortcut. Declared so opening the page does not warn.
     property int cfg_selectionRequest
     property int cfg_selectionRequestDefault
+    property string cfg_selectionScript
+    property string cfg_selectionScriptDefault
     property bool cfg_selectionShortcutMigrated
     property bool cfg_selectionShortcutMigratedDefault
     // Read once on upgrade, then cleared. Declared so opening the page does not warn.

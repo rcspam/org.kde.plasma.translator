@@ -57,8 +57,9 @@ function sequenceText(sequence) {
     return ""
 }
 
-// Runs inside plasmashell. Bumps this applet's selectionRequest. Panels and
-// desktops first, then a system tray containment, which is not a desktop.
+// Runs inside plasmashell. Bumps this applet's selectionRequest. widgets() is
+// the scripting API for the widgets in a panel or desktop. A system tray
+// applet lives in the tray's own containment.
 function plasmashellScript(appletId) {
     var id = numericId(appletId)
     return "(function() {\n"
@@ -71,29 +72,21 @@ function plasmashellScript(appletId) {
         + "  w.writeConfig('selectionRequest', n + 1)\n"
         + "  return true\n"
         + "}\n"
-        + "function consider(c) {\n"
-        + "  if (!c || !c.widgetById) return false\n"
-        + "  if (bump(c.widgetById(id))) return true\n"
-        + "  var ids = c.widgetIds || []\n"
-        + "  for (var i = 0; i < ids.length; i++) {\n"
-        + "    var child = c.widgetById(ids[i])\n"
-        + "    if (!child || child.type !== 'org.kde.plasma.systemtray') continue\n"
-        + "    var trayId = Number(child.readConfig('SystrayContainmentId'))\n"
-        + "    if (trayId && typeof desktopById === 'function' && consider(desktopById(trayId))) return true\n"
+        + "function scan(c) {\n"
+        + "  if (!c || !c.widgets) return false\n"
+        + "  var mine = c.widgets('org.kde.plasma.translator') || []\n"
+        + "  for (var i = 0; i < mine.length; i++) if (bump(mine[i])) return true\n"
+        + "  var trays = c.widgets('org.kde.plasma.systemtray') || []\n"
+        + "  for (var j = 0; j < trays.length; j++) {\n"
+        + "    var trayId = Number(trays[j].readConfig('SystrayContainmentId'))\n"
+        + "    if (trayId && typeof desktopById === 'function' && scan(desktopById(trayId))) return true\n"
         + "  }\n"
         + "  return false\n"
         + "}\n"
         + "var list = []\n"
         + "if (typeof panels === 'function' && panels()) list = list.concat(panels())\n"
         + "if (typeof desktops === 'function' && desktops()) list = list.concat(desktops())\n"
-        + "for (var i = 0; i < list.length; i++) if (consider(list[i])) return\n"
-        + "function walk(ids, byId) {\n"
-        + "  if (!ids || typeof byId !== 'function') return false\n"
-        + "  for (var i = 0; i < ids.length; i++) if (consider(byId(ids[i]))) return true\n"
-        + "  return false\n"
-        + "}\n"
-        + "if (typeof panelIds !== 'undefined' && walk(panelIds, panelById)) return\n"
-        + "if (typeof activityIds !== 'undefined' && walk(activityIds, desktopById)) return\n"
+        + "for (var i = 0; i < list.length; i++) if (scan(list[i])) return\n"
         + "})()\n"
 }
 
@@ -111,26 +104,34 @@ function unregisterCommand(component, action) {
         + "org.kde.KGlobalAccel.unregister string:" + component + " string:" + action + " >/dev/null 2>&1"
 }
 
-// Drops shortcuts registered by earlier revisions, then lets KWin register the
-// current one. KWin parses the key text itself.
-function syncCommand(appletId, shortcutText, label, scriptFile) {
-    var script = scriptName(appletId)
-    var legacy = legacyScriptName(appletId)
-    var kwin = "dbus-send --session --print-reply --dest=org.kde.KWin /Scripting org.kde.kwin.Scripting."
-    var cmd = unregisterCommand("kwin", script)
-        + "; " + unregisterCommand("kwin", legacy)
-        + "; " + unregisterCommand("kwin_wayland", script)
-        + "; " + unregisterCommand("kwin_wayland", legacy)
-        + "; " + kwin + "unloadScript string:" + legacy + " >/dev/null 2>&1"
-        + "; " + kwin + "unloadScript string:" + script + " >/dev/null 2>&1"
+// unloadScript only schedules deletion. Loading the same name in the next
+// command is ignored, and start() will not run a script that is already
+// running, so a changed shortcut never replaced the previous one.
+function syncCommand(appletId, shortcutText, label, scriptFile, previousName) {
     var text = String(shortcutText || "").trim()
-    if (!text) {
-        return cmd
+    var next = text ? actionName(appletId, text) : ""
+    var names = [legacyScriptName(appletId), scriptName(appletId)]
+    if (previousName && names.indexOf(previousName) < 0) {
+        names.push(previousName)
     }
-    cmd += "; printf '%s' " + Shell.quote(kwinScript(appletId, text, label)) + " > " + Shell.quote(scriptFile)
-        + " && " + kwin + "loadScript string:" + Shell.quote(scriptFile) + " string:" + script + " >/dev/null"
-        + " && " + kwin + "start >/dev/null"
-    return cmd
+    if (next && names.indexOf(next) < 0) {
+        names.push(next)
+    }
+    var kwin = "dbus-send --session --print-reply --dest=org.kde.KWin /Scripting org.kde.kwin.Scripting."
+    var parts = []
+    for (var i = 0; i < names.length; i++) {
+        parts.push(unregisterCommand("kwin", names[i]))
+        parts.push(unregisterCommand("kwin_wayland", names[i]))
+        parts.push(kwin + "unloadScript string:" + names[i] + " >/dev/null 2>&1")
+    }
+    // KWin deletes the old script on its next event-loop turn.
+    parts.push("sleep 0.3")
+    if (next) {
+        parts.push("printf '%s' " + Shell.quote(kwinScript(appletId, text, label)) + " > " + Shell.quote(scriptFile)
+            + " && " + kwin + "loadScript string:" + Shell.quote(scriptFile) + " string:" + next + " >/dev/null"
+            + " && " + kwin + "start >/dev/null")
+    }
+    return parts.join("; ")
 }
 
 // One-time swap. The Shortcuts page used to translate the selection; it now

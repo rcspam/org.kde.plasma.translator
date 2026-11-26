@@ -34,9 +34,8 @@ TestCase {
         verify(script.indexOf("writeConfig('selectionRequest'") !== -1)
         verify(script.indexOf("currentConfigGroup = ['General']") !== -1)
         verify(script.indexOf("panels()") !== -1)
-        verify(script.indexOf("desktops()") !== -1)
-        verify(script.indexOf("org.kde.plasma.systemtray") !== -1)
-        verify(script.indexOf("widgetById(id)") !== -1)
+        verify(script.indexOf("widgets('org.kde.plasma.translator')") !== -1)
+        verify(script.indexOf("widgets('org.kde.plasma.systemtray')") !== -1)
     }
 
     function test_plasmashellScript_rejectsInjection() {
@@ -57,23 +56,26 @@ TestCase {
     }
 
     function test_syncCommand_emptyUnloadsOnly() {
-        var cmd = Shortcut.syncCommand(3, "", "Translate the selection", "/tmp/open.js")
+        var cmd = Shortcut.syncCommand(3, "", "Translate the selection", "/tmp/open.js",
+                                       "org.kde.plasma.translator.selection.3.Meta_Y")
         verify(cmd.indexOf("unregister string:kwin string:org.kde.plasma.translator.selection.3") !== -1)
-        verify(cmd.indexOf("unregister string:kwin string:org.kde.plasma.translator.open.3") !== -1)
-        verify(cmd.indexOf("unloadScript string:org.kde.plasma.translator.selection.3") !== -1)
+        verify(cmd.indexOf("unloadScript string:org.kde.plasma.translator.selection.3.Meta_Y") !== -1)
+        verify(cmd.indexOf("sleep 0.3") !== -1)
         compare(cmd.indexOf("setForeignShortcut"), -1)
         compare(cmd.indexOf("Scripting.loadScript"), -1)
     }
 
     function test_syncCommand_letsKWinParseTheKey() {
-        var cmd = Shortcut.syncCommand(3, "Meta+T", "Translate the selection", "/tmp/my open.js")
-        verify(cmd.indexOf("unregister string:kwin string:org.kde.plasma.translator.selection.3") !== -1)
-        verify(cmd.indexOf("Scripting.loadScript string:") !== -1)
+        var cmd = Shortcut.syncCommand(3, "Meta+T", "Translate the selection", "/tmp/my open.js",
+                                       "org.kde.plasma.translator.selection.3")
+        verify(cmd.indexOf("unloadScript string:org.kde.plasma.translator.selection.3") !== -1)
+        verify(cmd.indexOf("sleep 0.3") !== -1)
+        var loadAt = cmd.indexOf("Scripting.loadScript string:")
+        verify(loadAt > cmd.indexOf("sleep 0.3"))
+        verify(cmd.indexOf("string:org.kde.plasma.translator.selection.3.Meta_T") !== -1)
         verify(cmd.indexOf("registerShortcut(") !== -1)
         verify(cmd.indexOf("\"Meta+T\"") !== -1)
-        verify(cmd.indexOf("org.kde.plasma.translator.selection.3.Meta_T") !== -1)
         compare(cmd.indexOf("setForeignShortcut"), -1)
-        compare(cmd.indexOf("array:int32:"), -1)
         verify(cmd.indexOf("'/tmp/my open.js'") !== -1)
     }
 

@@ -40,6 +40,8 @@ Item {
     property string cfg_selectionShortcutDefault
     property int cfg_selectionRequest
     property int cfg_selectionRequestDefault
+    property string cfg_selectionScript
+    property string cfg_selectionScriptDefault
     property bool cfg_selectionShortcutMigrated
     property bool cfg_selectionShortcutMigratedDefault
     property string cfg_openShortcut
