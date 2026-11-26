@@ -129,6 +129,13 @@ In the **Servers** tab: **Add**, type **LLM (OpenAI-compatible)**, address `http
 
 ![TranslateGemma server settings](screenshots/servers-translategemma.png)
 
+The **Instructions** accept these placeholders: `{text}` `{source_name}` `{source_code}` `{target_name}` `{target_code}`. Without `{text}`, the text is added at the end. To change how the model translates, add a sentence to the default prompt, right before "Please translate". Tried with TranslateGemma into French:
+
+- Casual tone (the default is formal): `Use a casual tone and address the reader with "tu".`
+- Your own terms: `Translate "panel" as "tableau de bord" and "widget" as "composant graphique".`
+
+The default prompt already keeps line breaks, lists, Markdown and code.
+
 The same type works with LM Studio, or with online APIs such as OpenAI, Mistral or Groq: set their address, an API key and a model name.
 
 ## Installation
