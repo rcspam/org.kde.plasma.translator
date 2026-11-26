@@ -5,6 +5,10 @@
 // Plasmashell itself only has Plasmoid.globalShortcut. There is no QML type
 // for another one, so the widget asks KWin to register it and to tell
 // plasmashell when the key is pressed.
+//
+// plasmoidviewer cannot receive this. The key is delivered with
+// plasmashell's evaluateScript, and the viewer is a separate process, so
+// pressing the shortcut there does nothing. Use a panel or the desktop.
 
 function numericId(appletId) {
     var id = Number(appletId)
@@ -84,8 +88,12 @@ function plasmashellScript(appletId) {
         + "  return false\n"
         + "}\n"
         + "var list = []\n"
-        + "if (typeof panels === 'function' && panels()) list = list.concat(panels())\n"
-        + "if (typeof desktops === 'function' && desktops()) list = list.concat(desktops())\n"
+        + "function collect(items) {\n"
+        + "  if (!items) return\n"
+        + "  for (var i = 0; i < items.length; i++) list.push(items[i])\n"
+        + "}\n"
+        + "if (typeof panels === 'function') collect(panels())\n"
+        + "if (typeof desktops === 'function') collect(desktops())\n"
         + "for (var i = 0; i < list.length; i++) if (scan(list[i])) return\n"
         + "})()\n"
 }

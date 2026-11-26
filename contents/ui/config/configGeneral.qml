@@ -578,7 +578,7 @@ Item {
             Layout.fillWidth: true
             QQC2.Label {
                 text: i18n("Translate the selection:")
-                QQC2.ToolTip.text: i18n("Translates the text selected in any window and shows it in a popup. The shortcut that opens the widget is on the Shortcuts page.")
+                QQC2.ToolTip.text: i18n("Translates the text selected in any window and shows it in a popup. The shortcut that opens the widget is on the Shortcuts page. plasmoidviewer cannot receive this shortcut.")
                 QQC2.ToolTip.visible: hovered
                 QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -591,6 +591,12 @@ Item {
             Item {
                 Layout.fillWidth: true
             }
+        }
+        QQC2.Label {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            text: i18n("This shortcut is delivered through Plasma. plasmoidviewer does not receive it; put the widget on a panel or the desktop.")
+            opacity: 0.75
         }
         QQC2.CheckBox {
             text: i18n("Keep the translation window above other windows")

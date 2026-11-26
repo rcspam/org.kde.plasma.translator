@@ -662,7 +662,9 @@ PlasmoidItem {
 
     // The Shortcuts page can register one shortcut, and Plasma opens the widget
     // for it. KWin's registerShortcut owns the selection shortcut and, when it
-    // is pressed, bumps selectionRequest. Without KWin, that one does nothing.
+    // is pressed, asks plasmashell to bump selectionRequest. That reaches a
+    // widget on a panel or the desktop. plasmoidviewer is not plasmashell, so
+    // the same key does nothing there. Without KWin, it does nothing at all.
     function updateSelectionShortcut() {
         if (!runner) {
             return
