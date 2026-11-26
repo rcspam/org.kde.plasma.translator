@@ -1,22 +1,10 @@
 .pragma library
 .import "shell.js" as Shell
 
-// KWin's KGlobalAccel component. kglobalshortcutsrc groups its shortcuts under
-// this name, on X11 and on Wayland.
-var kwinComponent = "kwin"
-
-// Shown by setForeignShortcut. registerShortcut gets the translated label.
-var selectionActionText = "Translate Selection"
-
-// One action per applet, so two widgets on the panel can have two shortcuts.
-function actionName(appletId) {
-    return "org.kde.plasma.translator.selection." + numericId(appletId)
-}
-
-// The previous build registered the open-widget shortcut under this name.
-function legacyActionName(appletId) {
-    return "org.kde.plasma.translator.open." + numericId(appletId)
-}
+// KWin's registerShortcut is the API that can own a second global shortcut.
+// Plasmashell itself only has Plasmoid.globalShortcut. There is no QML type
+// for another one, so the widget asks KWin to register it and to tell
+// plasmashell when the key is pressed.
 
 function numericId(appletId) {
     var id = Number(appletId)
@@ -26,108 +14,30 @@ function numericId(appletId) {
     return Math.trunc(id)
 }
 
-// QKeySequence::toString() (portable text) as the integer KGlobalAccel stores.
-// Empty, or a string Qt would not parse, is 0: nothing is registered.
-function keyCode(text) {
-    var raw = String(text || "").trim()
-    if (!raw) {
-        return 0
-    }
-    // A comma-space separates a chord ("Ctrl+K, Ctrl+T"). Only the first key
-    // is a global shortcut. "Ctrl+," is a comma, and has no space after it.
-    return chordCode(raw.split(", ")[0].trim())
+// Stable script name. Unloading it drops the previous KWin action.
+function scriptName(appletId) {
+    return "org.kde.plasma.translator.selection." + numericId(appletId)
 }
 
-function chordCode(chord) {
-    if (!chord) {
-        return 0
-    }
-    var mods = 0
-    var rest = chord
-    var prefixes = [
-        ["ctrl+", 0x04000000],
-        ["shift+", 0x02000000],
-        ["alt+", 0x08000000],
-        ["meta+", 0x10000000],
-        ["num+", 0x20000000]
-    ]
-    var moved = true
-    while (moved) {
-        moved = false
-        var lower = rest.toLowerCase()
-        for (var i = 0; i < prefixes.length; i++) {
-            if (lower.indexOf(prefixes[i][0]) === 0) {
-                mods |= prefixes[i][1]
-                rest = rest.slice(prefixes[i][0].length)
-                moved = true
-                break
-            }
-        }
-    }
-    rest = rest.trim()
-    if (!rest) {
-        return mods
-    }
-    var key = keyFromName(rest)
-    if (!key) {
-        return 0
-    }
-    return mods | key
+function legacyScriptName(appletId) {
+    return "org.kde.plasma.translator.open." + numericId(appletId)
 }
 
-function keyFromName(name) {
-    var lower = name.toLowerCase()
-    // Modifier-only shortcuts ("Meta", "Ctrl+Alt") are the modifier bits.
-    var mods = { "ctrl": 0x04000000, "shift": 0x02000000, "alt": 0x08000000, "meta": 0x10000000, "num": 0x20000000 }
-    if (mods[lower]) {
-        return mods[lower]
+// A new action id whenever the key changes. registerShortcut autoloads a key
+// it already saved for an action, so reusing the id would ignore the new one.
+function actionName(appletId, shortcutText) {
+    var raw = String(shortcutText || "")
+    var token = ""
+    for (var i = 0; i < raw.length; i++) {
+        var c = raw.charAt(i)
+        var ok = (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || (c >= "0" && c <= "9")
+        token += ok ? c : "_"
     }
-    var named = {
-        "space": 0x20,
-        "esc": 0x01000000,
-        "tab": 0x01000001,
-        "backtab": 0x01000002,
-        "backspace": 0x01000003,
-        "return": 0x01000004,
-        "enter": 0x01000005,
-        "ins": 0x01000006,
-        "del": 0x01000007,
-        "pause": 0x01000008,
-        "print": 0x01000009,
-        "sysreq": 0x0100000a,
-        "home": 0x01000010,
-        "end": 0x01000011,
-        "left": 0x01000012,
-        "up": 0x01000013,
-        "right": 0x01000014,
-        "down": 0x01000015,
-        "pgup": 0x01000016,
-        "pgdown": 0x01000017,
-        "capslock": 0x01000024,
-        "numlock": 0x01000025,
-        "scrolllock": 0x01000026,
-        "menu": 0x01000055,
-        "help": 0x01000058
-    }
-    if (named[lower]) {
-        return named[lower]
-    }
-    var fn = /^f([1-9]|[12][0-9]|3[0-5])$/.exec(lower)
-    if (fn) {
-        return 0x01000030 + Number(fn[1]) - 1
-    }
-    // Letters, digits and punctuation ("T", "+", ",") are their Latin-1 code,
-    // which is also the Qt key code.
-    if (name.length === 1) {
-        var code = name.toUpperCase().charCodeAt(0)
-        if (code > 0x20 && code < 0x7f) {
-            return code
-        }
-    }
-    return 0
+    return scriptName(appletId) + "." + (token || "none")
 }
 
-// What KeySequenceItem gives back. QKeySequence::toString() is portable text.
+// What KeySequenceItem gives back. QKeySequence::toString() is portable text,
+// which KWin's registerShortcut also accepts.
 function sequenceText(sequence) {
     if (sequence === undefined || sequence === null) {
         return ""
@@ -147,83 +57,79 @@ function sequenceText(sequence) {
     return ""
 }
 
-// Runs inside plasmashell. Bumps this applet's selectionRequest, which the
-// widget watches. Panels and desktops first; then every containment id, so a
-// widget kept in the system tray (its own containment, not a desktop) is found too.
+// Runs inside plasmashell. Bumps this applet's selectionRequest. Panels and
+// desktops first, then a system tray containment, which is not a desktop.
 function plasmashellScript(appletId) {
     var id = numericId(appletId)
     return "(function() {\n"
-        + "    var id = " + id + "\n"
-        + "    function bump(w) {\n"
-        + "        if (!w || !w.writeConfig || Number(w.id) !== id) return false\n"
-        + "        var n = Number(w.readConfig(\"selectionRequest\", 0)) || 0\n"
-        + "        if (n >= 1000000000) n = 0\n"
-        + "        w.writeConfig(\"selectionRequest\", n + 1)\n"
-        + "        return true\n"
-        + "    }\n"
-        + "    function consider(c) {\n"
-        + "        if (!c || !c.widgetById) return false\n"
-        + "        return bump(c.widgetById(id))\n"
-        + "    }\n"
-        + "    function walk(list) {\n"
-        + "        if (!list) return false\n"
-        + "        for (var i = 0; i < list.length; i++) {\n"
-        + "            if (consider(list[i])) return true\n"
-        + "        }\n"
-        + "        return false\n"
-        + "    }\n"
-        + "    if (typeof panels === \"function\" && walk(panels())) return\n"
-        + "    if (typeof desktops === \"function\" && walk(desktops())) return\n"
-        + "    var ids = []\n"
-        + "    function append(list) {\n"
-        + "        if (!list) return\n"
-        + "        for (var i = 0; i < list.length; i++) ids.push(list[i])\n"
-        + "    }\n"
-        + "    if (typeof panelIds !== \"undefined\") append(panelIds)\n"
-        + "    if (typeof activityIds !== \"undefined\") append(activityIds)\n"
-        + "    for (var i = 0; i < ids.length; i++) {\n"
-        + "        var c = null\n"
-        + "        if (typeof panelById === \"function\") c = panelById(ids[i])\n"
-        + "        if (!c || !c.widgetById) {\n"
-        + "            c = typeof desktopById === \"function\" ? desktopById(ids[i]) : null\n"
-        + "        }\n"
-        + "        if (consider(c)) return\n"
-        + "    }\n"
+        + "var id = " + id + "\n"
+        + "function bump(w) {\n"
+        + "  if (!w || !w.writeConfig || Number(w.id) !== id) return false\n"
+        + "  w.currentConfigGroup = ['General']\n"
+        + "  var n = Number(w.readConfig('selectionRequest', 0)) || 0\n"
+        + "  if (n >= 1000000000) n = 0\n"
+        + "  w.writeConfig('selectionRequest', n + 1)\n"
+        + "  return true\n"
+        + "}\n"
+        + "function consider(c) {\n"
+        + "  if (!c || !c.widgetById) return false\n"
+        + "  if (bump(c.widgetById(id))) return true\n"
+        + "  var ids = c.widgetIds || []\n"
+        + "  for (var i = 0; i < ids.length; i++) {\n"
+        + "    var child = c.widgetById(ids[i])\n"
+        + "    if (!child || child.type !== 'org.kde.plasma.systemtray') continue\n"
+        + "    var trayId = Number(child.readConfig('SystrayContainmentId'))\n"
+        + "    if (trayId && typeof desktopById === 'function' && consider(desktopById(trayId))) return true\n"
+        + "  }\n"
+        + "  return false\n"
+        + "}\n"
+        + "var list = []\n"
+        + "if (typeof panels === 'function' && panels()) list = list.concat(panels())\n"
+        + "if (typeof desktops === 'function' && desktops()) list = list.concat(desktops())\n"
+        + "for (var i = 0; i < list.length; i++) if (consider(list[i])) return\n"
+        + "function walk(ids, byId) {\n"
+        + "  if (!ids || typeof byId !== 'function') return false\n"
+        + "  for (var i = 0; i < ids.length; i++) if (consider(byId(ids[i]))) return true\n"
+        + "  return false\n"
+        + "}\n"
+        + "if (typeof panelIds !== 'undefined' && walk(panelIds, panelById)) return\n"
+        + "if (typeof activityIds !== 'undefined' && walk(activityIds, desktopById)) return\n"
         + "})()\n"
 }
 
 function kwinScript(appletId, shortcutText, label) {
-    var name = actionName(appletId)
-    var text = label || selectionActionText
-    return "registerShortcut(" + JSON.stringify(name) + ", " + JSON.stringify(text) + ", "
-        + JSON.stringify(String(shortcutText || "")) + ", function() {\n"
+    var text = label || "Translate the selection"
+    return "registerShortcut(" + JSON.stringify(actionName(appletId, shortcutText)) + ", "
+        + JSON.stringify(text) + ", " + JSON.stringify(String(shortcutText || "")) + ", function() {\n"
         + "    callDBus(\"org.kde.plasmashell\", \"/PlasmaShell\", \"org.kde.PlasmaShell\", \"evaluateScript\", "
         + JSON.stringify(plasmashellScript(appletId)) + ")\n"
         + "})\n"
 }
 
-// Unloads the shortcut, and when one is set, loads a KWin script that
-// registers it and then forces that key. registerShortcut keeps a key the
-// user already had (KGlobalAccel autoloads it), so a change in the widget
-// settings would not apply without setForeignShortcut.
+function unregisterCommand(component, action) {
+    return "dbus-send --session --print-reply --dest=org.kde.kglobalaccel /kglobalaccel "
+        + "org.kde.KGlobalAccel.unregister string:" + component + " string:" + action + " >/dev/null 2>&1"
+}
+
+// Drops shortcuts registered by earlier revisions, then lets KWin register the
+// current one. KWin parses the key text itself.
 function syncCommand(appletId, shortcutText, label, scriptFile) {
-    var name = actionName(appletId)
+    var script = scriptName(appletId)
+    var legacy = legacyScriptName(appletId)
     var kwin = "dbus-send --session --print-reply --dest=org.kde.KWin /Scripting org.kde.kwin.Scripting."
-    // The old action name too, so a shortcut registered by the previous build
-    // does not stay behind.
-    var cmd = kwin + "unloadScript string:" + legacyActionName(appletId) + " >/dev/null 2>&1"
-        + "; " + kwin + "unloadScript string:" + name + " >/dev/null 2>&1"
-    var code = keyCode(shortcutText)
-    if (!code) {
+    var cmd = unregisterCommand("kwin", script)
+        + "; " + unregisterCommand("kwin", legacy)
+        + "; " + unregisterCommand("kwin_wayland", script)
+        + "; " + unregisterCommand("kwin_wayland", legacy)
+        + "; " + kwin + "unloadScript string:" + legacy + " >/dev/null 2>&1"
+        + "; " + kwin + "unloadScript string:" + script + " >/dev/null 2>&1"
+    var text = String(shortcutText || "").trim()
+    if (!text) {
         return cmd
     }
-    var script = kwinScript(appletId, shortcutText, label)
-    cmd += "; printf '%s' " + Shell.quote(script) + " > " + Shell.quote(scriptFile)
-        + " && " + kwin + "loadScript string:" + Shell.quote(scriptFile) + " string:" + name + " >/dev/null"
+    cmd += "; printf '%s' " + Shell.quote(kwinScript(appletId, text, label)) + " > " + Shell.quote(scriptFile)
+        + " && " + kwin + "loadScript string:" + Shell.quote(scriptFile) + " string:" + script + " >/dev/null"
         + " && " + kwin + "start >/dev/null"
-        + " && dbus-send --session --print-reply --dest=org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel.setForeignShortcut"
-        + " array:string:\"" + kwinComponent + "\",\"" + name + "\",\"KWin\",\"" + selectionActionText + "\""
-        + " array:int32:" + (code | 0)
     return cmd
 }
 

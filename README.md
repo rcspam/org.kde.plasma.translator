@@ -52,7 +52,7 @@ sudo zypper install translate-shell
 
 ### Open the widget
 
-**Shortcuts** (right click > Configure > Shortcuts) sets the global shortcut, the same page other widgets use. Pressing it opens the widget and puts the cursor in the input, the same as clicking the icon.
+**Shortcuts** (right click > Configure > Shortcuts) sets the global shortcut, the same page other widgets use. Pressing it opens the widget and puts the cursor in the input. When the widget is already open, the input is focused again.
 
 ### Translate the selected text
 

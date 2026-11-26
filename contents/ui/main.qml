@@ -22,6 +22,9 @@ PlasmoidItem {
     Layout.fillHeight: true
     anchors.centerIn: parent
     preferredRepresentation: compactRepresentation
+    // Always open on the activation shortcut. The default toggles, and a QML
+    // handler that also sets expanded runs first, so the shell then closes it.
+    activationTogglesExpanded: false
     property string cfg_languages: plasmoid.configuration.languages
     property string toDelete: ""
     property string lefttext: ""
@@ -657,22 +660,14 @@ PlasmoidItem {
         root.selectionRequestSeen = plasmoid.configuration.selectionRequest
     }
 
-    // Same result as clicking the icon: the widget is open and the input has
-    // the cursor. Clicking toggles; this only opens. Already open, it focuses
-    // the input again.
-    function openAndFocus() {
-        root.expanded = true
-        root.openRequested()
-    }
-
-    // The Shortcuts page can register one shortcut, and that one opens the
-    // widget. KWin registers the selection shortcut and, when it is pressed,
-    // bumps selectionRequest on this applet. Without KWin, nothing happens.
+    // The Shortcuts page can register one shortcut, and Plasma opens the widget
+    // for it. KWin's registerShortcut owns the selection shortcut and, when it
+    // is pressed, bumps selectionRequest. Without KWin, that one does nothing.
     function updateSelectionShortcut() {
         if (!runner) {
             return
         }
-        var file = root.tmpfolder + "/" + Shortcut.actionName(plasmoid.id) + ".js"
+        var file = root.tmpfolder + "/" + Shortcut.scriptName(plasmoid.id) + ".js"
         runner.run(Shortcut.syncCommand(plasmoid.id, root.cfg_selectionShortcut,
                                         i18n("Translate the selection"), file), function() {})
     }
@@ -753,7 +748,8 @@ PlasmoidItem {
     Connections {
         target: Plasmoid
         function onActivated() {
-            root.openAndFocus()
+            // Focus only. Plasma's own handler opens the widget.
+            root.openRequested()
         }
     }
     Timer {
