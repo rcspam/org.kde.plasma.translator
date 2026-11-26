@@ -28,6 +28,14 @@ TestCase {
               translation: "Il fait beau aujourd'hui, nous pourrions faire une promenade au bord du lac.", expected: false },
             { tag: "numbers and names kept", text: "Linux kernel 6.18 update",
               translation: "Mise à jour du noyau Linux 6.18", expected: false },
+            { tag: "french text typed without accents", text: "une 2eme selection popup",
+              translation: "une deuxième fenêtre de sélection", expected: true },
+            { tag: "french text with a capital fixed", text: "ce n'est pas du au fait que le double appui ouvre le widget",
+              translation: "Ce n'est pas dû au fait que l'appui double ouvre le widget.", expected: true },
+            { tag: "spanish text close to french", text: "La casa de mi madre es grande y tiene un jardín.",
+              translation: "La maison de ma mère est grande et possède un jardin.", expected: false },
+            { tag: "english text keeping a name", text: "Install translate-shell for online translation",
+              translation: "Installez translate-shell pour la traduction en ligne", expected: false },
         ]
     }
     function test_unchanged(row) {

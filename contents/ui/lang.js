@@ -58,14 +58,20 @@ function endonymCodes(listAll) {
 // Typographic quotes, dashes and CJK punctuation included.
 var separators = /[\s0-9.,;:!?'"()\[\]{}<>\/\\|@#$%^&*+=_~`¡«»¿\u2013\u2014‘’“”…、。！（），：；？-]+/
 
+// Lower case and without accents: an LLM fixes "selection" into "sélection"
+// while rewriting a French text in French.
 function words(text) {
-    return text.toLowerCase().split(separators).filter(function(w) { return w.length > 0 })
+    return text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+            .split(separators).filter(function(w) { return w.length > 0 })
 }
 
 // True when a translation kept most words of the text: the text was already
 // in the target language. Works with every engine, none has to report the
-// language it detected. Measured with TranslateGemma into French: 79 to 100%
-// of the words kept for French texts, none for English or German ones.
+// language it detected. Measured with TranslateGemma into French: 50 to 100%
+// of the words kept for French texts (50% for a short text typed without
+// accents), 45% at most for Spanish, Italian or Portuguese ones, which share
+// small words with French, 0 to 33% for English or German ones. Hence the
+// 50% threshold, which cannot go lower.
 function unchanged(text, translation) {
     var source = words(text)
     if (source.length === 0) {
