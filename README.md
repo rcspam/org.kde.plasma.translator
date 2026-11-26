@@ -32,7 +32,7 @@ But it can now also translate **fully offline** with your own servers: [LibreTra
 - For offline translation, a server on your machine: **LibreTranslate**, or an LLM through **Ollama** or **LM Studio**
 - **translate-shell** (`trans`), only for the Google, Yandex, Bing and Apertium engines and for pronunciation. Not needed if you only use your own servers.
 
-### Offline translation
+### Install Offline translation servers
 
 Nothing leaves your computer. Pick one:
 
