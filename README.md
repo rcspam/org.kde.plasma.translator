@@ -199,6 +199,7 @@ These work while the widget is open. The key that opens it, or translates the se
 
 - New: the global shortcut opens the widget with the cursor in the input, to type a text without the mouse. Press it twice to translate the selection. **General** > **Global shortcut** swaps the two, for those who want the selection on a single press (idea from MurzNN, PR 11).
 - Changed: a shortcut set before this version now opens the widget on a single press. Press it twice, or swap the two in the General tab, to translate the selection as before.
+- Fixed: with an LLM and the Auto destination, a text already in your language that the model rewords (accents added, a capital fixed) is now recognized, and translated into your second language.
 
 ### 6.2.0
 
