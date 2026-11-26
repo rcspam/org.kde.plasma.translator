@@ -49,11 +49,22 @@ sudo zypper install translate-shell
 
 ## Usage
 
+### Global shortcut
+
+Set the key in right click > Configure > Keyboard Shortcuts. Plasma gives a widget only one global shortcut, so this key does two things:
+
+| You press        | What happens                                              |
+| ---------------- | --------------------------------------------------------- |
+| Once             | The widget opens, with the cursor in the input: type away |
+| Twice, quickly   | The text selected in any window is translated in a small window |
+
+**General** > **Global shortcut** swaps the two, if you translate selections more often than you type.
+
+A single press acts after a short delay, the time to make sure no second press follows. That delay is your system's double-click interval (System Settings).
+
 ### Translate the selected text
 
-Give the widget a global shortcut (right click > Configure > Keyboard Shortcuts). Pressing it opens the widget with the cursor in the input, to type a text yourself. Pressing it twice translates the text currently selected in any window, and shows the result in a small window. **General** > **Global shortcut** swaps the two: a press translates the selection, two presses open the widget. Whichever comes on a single press starts after a short delay (the double-click interval), the time to tell it from a double press.
-
-The selected text is translated this way:
+Press the global shortcut twice (once if you swapped the two). The selected text is translated this way:
 
 - a text in any other language is translated into your native language
 - a text already in your native language is translated into the target language chosen in the widget (the second language when that target is **Auto**)
