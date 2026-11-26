@@ -29,7 +29,17 @@ But it can now also translate **fully offline** with your own servers: [LibreTra
 ## Requirements
 
 - **KDE Plasma 6**
+- For offline translation, a server on your machine: **LibreTranslate**, or an LLM through **Ollama** or **LM Studio**
 - **translate-shell** (`trans`), only for the Google, Yandex, Bing and Apertium engines and for pronunciation. Not needed if you only use your own servers.
+
+### Offline translation
+
+Nothing leaves your computer. Pick one:
+
+- **LibreTranslate**: a free translation server, started with Docker. Light and fast, one model per language pair. See [LibreTranslate on your machine](#example-libretranslate-on-your-machine).
+- **An LLM**: [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) with a translation model such as TranslateGemma. Better with long or idiomatic texts, heavier to run. See [an LLM with TranslateGemma](#example-an-llm-with-translategemma).
+
+Then add the server in the **Servers** tab and pick it as engine in the **General** tab.
 
 ### Install translate-shell
 
